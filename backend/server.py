@@ -482,7 +482,7 @@ async def verify_otp(data: OTPVerify):
     }
     
     await db.users.insert_one(new_user)
-    del new_user["_id"] if "_id" in new_user else None
+    new_user.pop("_id", None)
     
     token = create_token({"user_id": new_user["id"], "email": new_user["email"]})
     
