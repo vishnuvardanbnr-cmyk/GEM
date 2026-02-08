@@ -260,6 +260,165 @@ export default function AdminSettings() {
           </Card>
         </TabsContent>
 
+        {/* Wallet Settings */}
+        <TabsContent value="wallet">
+          <Card data-testid="wallet-settings-card">
+            <CardHeader>
+              <CardTitle className="font-heading text-lg flex items-center gap-2">
+                <Wallet className="w-5 h-5 text-purple-600" />
+                Wallet & Transfer Settings
+              </CardTitle>
+              <CardDescription>
+                Configure transfer fees, withdrawal fees, and minimums
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Transfer Fees */}
+              <div>
+                <h3 className="font-medium text-neutral-800 mb-3 flex items-center gap-2">
+                  <ArrowLeftRight className="w-4 h-4 text-purple-500" />
+                  Internal Transfer Fees (%)
+                </h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2">
+                      <Percent className="w-4 h-4 text-emerald-500" />
+                      Earnings → Deposit Fee %
+                    </Label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      max="100"
+                      value={walletSettings.earnings_to_deposit_fee}
+                      onChange={(e) => setWalletSettings({ ...walletSettings, earnings_to_deposit_fee: parseFloat(e.target.value) || 0 })}
+                      className="h-12 rounded-xl"
+                      data-testid="earnings-deposit-fee-input"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2">
+                      <Percent className="w-4 h-4 text-blue-500" />
+                      Deposit → Earnings Fee %
+                    </Label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      max="100"
+                      value={walletSettings.deposit_to_earnings_fee}
+                      onChange={(e) => setWalletSettings({ ...walletSettings, deposit_to_earnings_fee: parseFloat(e.target.value) || 0 })}
+                      className="h-12 rounded-xl"
+                      data-testid="deposit-earnings-fee-input"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* User Transfer Fee */}
+              <div>
+                <h3 className="font-medium text-neutral-800 mb-3 flex items-center gap-2">
+                  <ArrowLeftRight className="w-4 h-4 text-orange-500" />
+                  User-to-User Transfer Fee (%)
+                </h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2">
+                      <Percent className="w-4 h-4 text-orange-500" />
+                      User Transfer Fee %
+                    </Label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      max="100"
+                      value={walletSettings.user_transfer_fee}
+                      onChange={(e) => setWalletSettings({ ...walletSettings, user_transfer_fee: parseFloat(e.target.value) || 0 })}
+                      className="h-12 rounded-xl"
+                      data-testid="user-transfer-fee-input"
+                    />
+                    <p className="text-xs text-neutral-500">Fee charged for sending USDT to another user</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Withdrawal Settings */}
+              <div>
+                <h3 className="font-medium text-neutral-800 mb-3 flex items-center gap-2">
+                  <DollarSign className="w-4 h-4 text-red-500" />
+                  External Withdrawal Settings
+                </h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Withdrawal Fee (USDT)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={walletSettings.withdrawal_fee}
+                      onChange={(e) => setWalletSettings({ ...walletSettings, withdrawal_fee: parseFloat(e.target.value) || 0 })}
+                      className="h-12 rounded-xl"
+                      data-testid="withdrawal-fee-input"
+                    />
+                    <p className="text-xs text-neutral-500">Fixed fee for external withdrawals</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Minimum Withdrawal (USDT)</Label>
+                    <Input
+                      type="number"
+                      step="1"
+                      min="0"
+                      value={walletSettings.min_withdrawal_amount}
+                      onChange={(e) => setWalletSettings({ ...walletSettings, min_withdrawal_amount: parseFloat(e.target.value) || 0 })}
+                      className="h-12 rounded-xl"
+                      data-testid="min-withdrawal-input"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Minimum Transfer */}
+              <div>
+                <h3 className="font-medium text-neutral-800 mb-3 flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-500" />
+                  Minimum Amounts
+                </h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Minimum Transfer Amount (USDT)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={walletSettings.min_transfer_amount}
+                      onChange={(e) => setWalletSettings({ ...walletSettings, min_transfer_amount: parseFloat(e.target.value) || 0 })}
+                      className="h-12 rounded-xl"
+                      data-testid="min-transfer-input"
+                    />
+                    <p className="text-xs text-neutral-500">Applies to internal & user-to-user transfers</p>
+                  </div>
+                </div>
+              </div>
+
+              <Button 
+                onClick={saveWalletSettings}
+                className="bg-purple-600 hover:bg-purple-700"
+                disabled={saving.wallet}
+                data-testid="save-wallet-btn"
+              >
+                {saving.wallet ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    Save Wallet Settings
+                  </>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         {/* SMTP Settings */}
         <TabsContent value="smtp">
           <Card data-testid="smtp-settings-card">
