@@ -95,6 +95,7 @@ export const adminAPI = {
 export const publicAPI = {
   getTerms: () => api.get('/public/terms'),
   getPrivacy: () => api.get('/public/privacy'),
+  getActivationTerms: () => api.get('/public/activation-terms'),
 };
 
 export default api;
