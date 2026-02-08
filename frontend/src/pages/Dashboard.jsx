@@ -187,22 +187,75 @@ export default function Dashboard() {
                 </div>
               </div>
               <Button 
-                onClick={handleActivate}
+                onClick={openActivatePopup}
                 className="bg-emerald-600 hover:bg-emerald-700 text-white btn-glow"
-                disabled={activating}
                 data-testid="activate-btn"
               >
-                {activating ? (
-                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                ) : (
-                  <Zap className="w-4 h-4 mr-2" />
-                )}
-                {activating ? "Checking..." : "Activate Now"}
+                <Zap className="w-4 h-4 mr-2" />
+                Activate Now
               </Button>
             </div>
           </CardContent>
         </Card>
       )}
+
+      {/* Activation Terms Popup */}
+      <Dialog open={activateOpen} onOpenChange={setActivateOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="font-heading text-xl flex items-center gap-2">
+              <FileText className="w-5 h-5 text-emerald-600" />
+              Terms & Conditions
+            </DialogTitle>
+            <DialogDescription>
+              Please read and accept the terms to activate your account
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 mt-4">
+            {/* Terms Content */}
+            <ScrollArea className="h-[250px] w-full rounded-xl border bg-neutral-50 p-4">
+              <div 
+                className="prose prose-sm prose-neutral max-w-none"
+                dangerouslySetInnerHTML={{ __html: activationTerms }}
+              />
+            </ScrollArea>
+
+            {/* Checkbox */}
+            <div className="flex items-start space-x-3 p-4 bg-emerald-50 rounded-xl border border-emerald-200">
+              <Checkbox
+                id="activation-terms"
+                checked={termsAccepted}
+                onCheckedChange={(checked) => setTermsAccepted(checked)}
+                data-testid="activation-terms-checkbox"
+              />
+              <label
+                htmlFor="activation-terms"
+                className="text-sm font-medium text-emerald-800 leading-tight cursor-pointer"
+              >
+                I have read and agree to the Terms & Conditions for account activation
+              </label>
+            </div>
+
+            {/* Confirm Button */}
+            <Button 
+              onClick={handleActivate}
+              className="w-full h-12 rounded-xl bg-emerald-600 hover:bg-emerald-700"
+              disabled={!termsAccepted || activating}
+              data-testid="confirm-activation-btn"
+            >
+              {activating ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <>
+                  <CheckCircle2 className="w-5 h-5 mr-2" />
+                  Confirm & Activate
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* MT5 Credentials Popup */}
       <Dialog open={mt5Open} onOpenChange={(open) => {
