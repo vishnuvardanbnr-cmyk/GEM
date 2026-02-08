@@ -469,10 +469,8 @@ async def check_and_activate_user(user_id: str):
         await distribute_level_income(user_id, required_amount, income_type)
         return True
     return False
-        })
-        
-        # Distribute level income
-        await distribute_level_income(user_id, required_amount, "subscription")
+        # Distribute level income with correct type
+        await distribute_level_income(user_id, required_amount, income_type)
         return True
     return False
 
