@@ -94,6 +94,17 @@ class WithdrawRequest(BaseModel):
     amount: float
     to_address: str
 
+class AdditionalCommission(BaseModel):
+    user_id: str
+    activation_percentage: float
+    renewal_percentage: float
+
+class LevelSettingsV2(BaseModel):
+    level: int
+    activation_percentage: float
+    renewal_percentage: float
+    min_direct_referrals: int
+
 class UserResponse(BaseModel):
     id: str
     email: str
