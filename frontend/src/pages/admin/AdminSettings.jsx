@@ -147,11 +147,11 @@ export default function AdminSettings() {
                 Subscription Settings
               </CardTitle>
               <CardDescription>
-                Configure activation and renewal amounts (USDT)
+                Configure activation, renewal amounts (USDT), and grace period
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label>Activation Amount (USDT)</Label>
                   <Input
@@ -176,7 +176,41 @@ export default function AdminSettings() {
                   />
                   <p className="text-xs text-neutral-500">Monthly renewal amount</p>
                 </div>
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-amber-500" />
+                    Grace Period (Hours)
+                  </Label>
+                  <Input
+                    type="number"
+                    step="1"
+                    min="0"
+                    value={subscription.grace_period_hours}
+                    onChange={(e) => setSubscription({ ...subscription, grace_period_hours: parseInt(e.target.value) || 0 })}
+                    className="h-12 rounded-xl"
+                    data-testid="grace-period-input"
+                  />
+                  <p className="text-xs text-neutral-500">Time after expiry before account is compressed</p>
+                </div>
               </div>
+              
+              {/* Grace Period Info */}
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <h4 className="font-medium text-amber-800">Grace Period & Compression</h4>
+                    <ul className="text-sm text-amber-700 mt-1 space-y-1">
+                      <li>• When subscription expires, users enter a grace period ({subscription.grace_period_hours} hours)</li>
+                      <li>• During grace period, level income is stored in a temporary wallet</li>
+                      <li>• If user renews within grace period, temporary wallet is released to main wallet</li>
+                      <li>• If user doesn't renew, temporary wallet is forfeited and user is compressed</li>
+                      <li>• Compressed users are skipped in level income distribution (income passes to next active upline)</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              
               <Button 
                 onClick={saveSubscription}
                 className="bg-emerald-600 hover:bg-emerald-700"
