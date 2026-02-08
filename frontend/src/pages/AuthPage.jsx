@@ -18,6 +18,8 @@ export default function AuthPage() {
   const [userExists, setUserExists] = useState(false);
   const [countdown, setCountdown] = useState(0);
 
+  const [smtpConfigured, setSmtpConfigured] = useState(true);
+
   const referralCode = searchParams.get("ref");
 
   useEffect(() => {
@@ -46,9 +48,15 @@ export default function AuthPage() {
     try {
       const response = await authAPI.sendOTP(email);
       setUserExists(response.data.user_exists);
+      setSmtpConfigured(response.data.smtp_configured !== false);
       setStep("otp");
       setCountdown(60);
-      toast.success("OTP sent to your email");
+      
+      if (response.data.smtp_configured === false) {
+        toast.info("SMTP not configured. Use OTP: 000000");
+      } else {
+        toast.success("OTP sent to your email");
+      }
     } catch (error) {
       toast.error(error.response?.data?.detail || "Failed to send OTP");
     } finally {
