@@ -170,17 +170,22 @@ export default function Dashboard() {
                 <div>
                   <h3 className="font-semibold text-amber-800">Activate Your Account</h3>
                   <p className="text-amber-700 text-sm mt-1">
-                    Deposit ${activationAmount} USDT to activate your account and start earning.
+                    Top up ${activationAmount} USDT from Wallet page to activate your account.
                   </p>
                 </div>
               </div>
               <Button 
-                onClick={() => setActivateOpen(true)}
+                onClick={handleActivate}
                 className="bg-emerald-600 hover:bg-emerald-700 text-white btn-glow"
+                disabled={activating}
                 data-testid="activate-btn"
               >
-                <Zap className="w-4 h-4 mr-2" />
-                Activate Now
+                {activating ? (
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                ) : (
+                  <Zap className="w-4 h-4 mr-2" />
+                )}
+                {activating ? "Checking..." : "Activate Now"}
               </Button>
             </div>
           </CardContent>
