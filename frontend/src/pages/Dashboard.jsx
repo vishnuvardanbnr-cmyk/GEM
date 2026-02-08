@@ -117,15 +117,6 @@ export default function Dashboard() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const copyWalletAddress = () => {
-    if (data?.user?.wallet_address) {
-      navigator.clipboard.writeText(data.user.wallet_address);
-      setAddressCopied(true);
-      toast.success("Wallet address copied!");
-      setTimeout(() => setAddressCopied(false), 2000);
-    }
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
