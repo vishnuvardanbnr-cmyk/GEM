@@ -83,6 +83,11 @@ export const adminAPI = {
   getTransactions: (skip = 0, limit = 50, type = null) => 
     api.get(`/admin/transactions?skip=${skip}&limit=${limit}${type ? `&type=${type}` : ''}`),
   updateContent: (type, content) => api.put(`/admin/content/${type}`, { content }),
+  // Additional Commissions
+  getAdditionalCommissions: () => api.get('/admin/additional-commissions'),
+  addAdditionalCommission: (data) => api.post('/admin/additional-commissions', data),
+  updateAdditionalCommission: (userId, data) => api.put(`/admin/additional-commissions/${userId}`, data),
+  deleteAdditionalCommission: (userId) => api.delete(`/admin/additional-commissions/${userId}`),
 };
 
 // Public APIs
