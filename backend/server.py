@@ -1364,6 +1364,19 @@ async def admin_update_subscription(data: SubscriptionSettings, admin: dict = De
     )
     return {"message": "Subscription settings updated", "settings": data.model_dump()}
 
+@api_router.get("/admin/settings/wallet")
+async def admin_get_wallet_settings(admin: dict = Depends(get_current_admin)):
+    return await get_wallet_settings()
+
+@api_router.put("/admin/settings/wallet")
+async def admin_update_wallet_settings(data: WalletSettings, admin: dict = Depends(get_current_admin)):
+    await db.settings.update_one(
+        {"type": "wallet"},
+        {"$set": {"type": "wallet", "data": data.model_dump()}},
+        upsert=True
+    )
+    return {"message": "Wallet settings updated", "settings": data.model_dump()}
+
 @api_router.get("/admin/settings/smtp")
 async def admin_get_smtp(admin: dict = Depends(get_current_admin)):
     settings = await get_smtp_settings()
