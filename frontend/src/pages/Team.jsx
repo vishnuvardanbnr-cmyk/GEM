@@ -129,7 +129,7 @@ export default function Team() {
           </h1>
           <p className="text-neutral-500">Build and manage your team</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Button 
             variant="outline" 
             size="sm"
@@ -143,9 +143,19 @@ export default function Team() {
             size="sm"
             onClick={copyReferralLink}
             className="bg-emerald-600 hover:bg-emerald-700"
+            data-testid="copy-referral-btn"
           >
-            {copied ? <Check className="w-4 h-4 mr-2" /> : <Share2 className="w-4 h-4 mr-2" />}
-            {copied ? "Copied!" : "Share Link"}
+            {copied ? <Check className="w-4 h-4 mr-2" /> : <Copy className="w-4 h-4 mr-2" />}
+            {copied ? "Copied!" : "Copy Link"}
+          </Button>
+          <Button 
+            size="sm"
+            onClick={shareOnWhatsApp}
+            className="bg-green-500 hover:bg-green-600"
+            data-testid="whatsapp-share-btn"
+          >
+            <MessageCircle className="w-4 h-4 mr-2" />
+            Share on WhatsApp
           </Button>
         </div>
       </div>
