@@ -72,6 +72,7 @@ export default function AdminSettings() {
       ]);
       
       if (subRes.data) setSubscription(subRes.data);
+      if (walletRes.data) setWalletSettings(walletRes.data);
       if (smtpRes.data && Object.keys(smtpRes.data).length > 0) setSmtp(smtpRes.data);
       if (ccRes.data) setCoinconnect(ccRes.data);
     } catch (error) {
@@ -90,6 +91,18 @@ export default function AdminSettings() {
       toast.error("Failed to save subscription settings");
     } finally {
       setSaving({ ...saving, subscription: false });
+    }
+  };
+
+  const saveWalletSettings = async () => {
+    setSaving({ ...saving, wallet: true });
+    try {
+      await adminAPI.updateWalletSettings(walletSettings);
+      toast.success("Wallet settings saved");
+    } catch (error) {
+      toast.error("Failed to save wallet settings");
+    } finally {
+      setSaving({ ...saving, wallet: false });
     }
   };
 
