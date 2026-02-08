@@ -375,14 +375,26 @@ def main():
     tester.test_public_terms()
     tester.test_public_privacy()
     
-    # Test auth flow
-    print("\n=== USER AUTHENTICATION ===")
+    # Test auth flow with focus on new OTP behavior
+    print("\n=== USER AUTHENTICATION & OTP TESTING ===")
+    print("🔍 Testing OTP behavior when SMTP not configured...")
     otp_success, otp_response = tester.test_send_otp(test_email)
     
     if otp_success:
-        # Since we can't get real OTP, let's use a mock OTP to test the flow
-        # In real scenario, this would fail but we can still test the endpoint structure
-        tester.test_verify_otp(test_email, "123456")
+        print(f"📧 OTP Response: {otp_response}")
+        
+        # Check if SMTP is configured
+        smtp_configured = otp_response.get("smtp_configured", True)
+        print(f"📧 SMTP Configured: {smtp_configured}")
+        
+        if not smtp_configured:
+            print("✅ Testing default OTP '000000' when SMTP not configured...")
+            otp_verify_success, otp_verify_response = tester.test_verify_otp(test_email, "000000")
+            if otp_verify_success:
+                print("✅ Default OTP '000000' verification successful!")
+        else:
+            print("⚠️ SMTP is configured, testing with dummy OTP (expected to fail)")
+            tester.test_verify_otp(test_email, "123456")
     
     # Test admin login
     print("\n=== ADMIN AUTHENTICATION ===")
@@ -401,8 +413,48 @@ def main():
     print("\n=== ADMIN ENDPOINTS ===")
     if admin_success:
         tester.test_admin_dashboard()
-        tester.test_admin_users()
-        tester.test_admin_levels()
+        users_success, users_response = tester.test_admin_users()
+        
+        # Test level settings with separate activation/renewal percentages
+        print("\n=== LEVEL SETTINGS TESTING ===")
+        levels_success, levels_response = tester.test_admin_levels()
+        if levels_success:
+            print("✅ Checking level settings format...")
+            levels = levels_response.get("levels", [])
+            for level in levels:
+                if "activation_percentage" in level and "renewal_percentage" in level:
+                    print(f"✅ Level {level['level']}: Activation {level['activation_percentage']}%, Renewal {level['renewal_percentage']}%")
+                else:
+                    print(f"⚠️ Level {level['level']}: Missing separate activation/renewal percentages")
+        
+        # Test additional commissions CRUD
+        print("\n=== ADDITIONAL COMMISSIONS TESTING ===")
+        commissions_success, commissions_response = tester.test_admin_additional_commissions()
+        if commissions_success:
+            print("✅ Additional commissions endpoint working")
+            print(f"📊 Current commissions: {len(commissions_response.get('commissions', []))}")
+            
+            # Test adding a commission if we have users
+            if users_success and users_response.get("users"):
+                test_user_id = users_response["users"][0]["id"]
+                print(f"🧪 Testing add commission for user: {test_user_id}")
+                add_success, add_response = tester.test_add_additional_commission(
+                    test_user_id, 5.0, 3.0
+                )
+                if add_success:
+                    print("✅ Additional commission added successfully")
+                    # Test update
+                    update_success, update_response = tester.test_update_additional_commission(
+                        test_user_id, 6.0, 4.0
+                    )
+                    if update_success:
+                        print("✅ Additional commission updated successfully")
+                    
+                    # Test delete
+                    delete_success, delete_response = tester.test_delete_additional_commission(test_user_id)
+                    if delete_success:
+                        print("✅ Additional commission deleted successfully")
+        
         tester.test_admin_subscription()
         tester.test_admin_smtp()
         tester.test_admin_coinconnect()
