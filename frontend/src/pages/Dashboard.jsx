@@ -35,9 +35,8 @@ export default function Dashboard() {
   const [copied, setCopied] = useState(false);
   const [data, setData] = useState(null);
   
-  // Activation popup state
-  const [activateOpen, setActivateOpen] = useState(false);
-  const [addressCopied, setAddressCopied] = useState(false);
+  // Activation state
+  const [activating, setActivating] = useState(false);
   
   // MT5 submission state
   const [mt5Open, setMt5Open] = useState(false);
