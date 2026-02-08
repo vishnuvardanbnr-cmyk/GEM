@@ -940,27 +940,41 @@ async def get_wallet(user: dict = Depends(get_current_user)):
         {"_id": 0}
     ).sort("created_at", -1).limit(20).to_list(20)
     
-    # Get deposit history (activations/renewals)
-    deposits = await db.transactions.find(
-        {"user_id": user["id"], "type": {"$in": ["activation", "renewal"]}},
+    # Get transfer history
+    transfers = await db.transactions.find(
+        {"user_id": user["id"], "type": {"$in": ["internal_transfer", "user_transfer_sent", "user_transfer_received"]}},
         {"_id": 0}
     ).sort("created_at", -1).limit(20).to_list(20)
     
+    # Get wallet settings
+    wallet_settings = await get_wallet_settings()
+    
     return {
         "wallet_address": user.get("wallet_address"),
-        "external_balance": wallet_balance,
-        "internal_balance": user.get("wallet_balance", 0),
+        "deposit_balance": user.get("deposit_balance", 0),  # Deposit wallet (for activation/renewal)
+        "earnings_balance": user.get("wallet_balance", 0),  # Earnings wallet (level income)
+        "external_balance": wallet_balance,  # CoinConnect balance
         "withdrawals": withdrawals,
-        "deposits": deposits
+        "transfers": transfers,
+        "wallet_settings": wallet_settings
     }
 
 @api_router.post("/user/withdraw")
 async def withdraw(data: WithdrawRequest, user: dict = Depends(get_current_user)):
+    wallet_settings = await get_wallet_settings()
+    min_withdrawal = wallet_settings.get("min_withdrawal_amount", 10)
+    withdrawal_fee = wallet_settings.get("withdrawal_fee", 0)
+    
     if data.amount <= 0:
         raise HTTPException(status_code=400, detail="Invalid amount")
     
-    if data.amount > user.get("wallet_balance", 0):
-        raise HTTPException(status_code=400, detail="Insufficient balance")
+    if data.amount < min_withdrawal:
+        raise HTTPException(status_code=400, detail=f"Minimum withdrawal amount is ${min_withdrawal}")
+    
+    total_deduction = data.amount + withdrawal_fee
+    
+    if total_deduction > user.get("wallet_balance", 0):
+        raise HTTPException(status_code=400, detail=f"Insufficient earnings balance. Need ${total_deduction} (${data.amount} + ${withdrawal_fee} fee)")
     
     txn_id = f"GEM-{str(uuid.uuid4())[:8].upper()}"
     
@@ -974,18 +988,19 @@ async def withdraw(data: WithdrawRequest, user: dict = Depends(get_current_user)
     )
     
     if result.get("status") == "OK":
-        # Deduct from internal balance
+        # Deduct from earnings balance (amount + fee)
         await db.users.update_one(
             {"id": user["id"]},
-            {"$inc": {"wallet_balance": -data.amount}}
+            {"$inc": {"wallet_balance": -total_deduction}}
         )
         
-        # Record transaction
+        # Record withdrawal transaction
         await db.transactions.insert_one({
             "id": str(uuid.uuid4()),
             "user_id": user["id"],
             "type": "withdrawal",
             "amount": data.amount,
+            "fee": withdrawal_fee,
             "to_address": data.to_address,
             "txn_id": txn_id,
             "txn_hash": result.get("response", {}).get("data", {}).get("txn_hash"),
@@ -993,9 +1008,177 @@ async def withdraw(data: WithdrawRequest, user: dict = Depends(get_current_user)
             "created_at": datetime.now(timezone.utc).isoformat()
         })
         
-        return {"message": "Withdrawal successful", "txn_id": txn_id, "txn_hash": result.get("response", {}).get("data", {}).get("txn_hash")}
+        return {
+            "message": "Withdrawal successful", 
+            "txn_id": txn_id, 
+            "txn_hash": result.get("response", {}).get("data", {}).get("txn_hash"),
+            "amount": data.amount,
+            "fee": withdrawal_fee
+        }
     else:
         raise HTTPException(status_code=400, detail=result.get("message", "Withdrawal failed"))
+
+@api_router.post("/user/internal-transfer")
+async def internal_transfer(data: InternalTransferRequest, user: dict = Depends(get_current_user)):
+    """Transfer between Earnings and Deposit wallets"""
+    wallet_settings = await get_wallet_settings()
+    min_amount = wallet_settings.get("min_transfer_amount", 1)
+    
+    if data.amount <= 0:
+        raise HTTPException(status_code=400, detail="Invalid amount")
+    
+    if data.amount < min_amount:
+        raise HTTPException(status_code=400, detail=f"Minimum transfer amount is ${min_amount}")
+    
+    if data.transfer_type == "earnings_to_deposit":
+        fee_percent = wallet_settings.get("earnings_to_deposit_fee", 0)
+        source_balance = user.get("wallet_balance", 0)
+        source_field = "wallet_balance"
+        dest_field = "deposit_balance"
+    elif data.transfer_type == "deposit_to_earnings":
+        fee_percent = wallet_settings.get("deposit_to_earnings_fee", 0)
+        source_balance = user.get("deposit_balance", 0)
+        source_field = "deposit_balance"
+        dest_field = "wallet_balance"
+    else:
+        raise HTTPException(status_code=400, detail="Invalid transfer type")
+    
+    fee_amount = data.amount * (fee_percent / 100)
+    total_deduction = data.amount
+    net_amount = data.amount - fee_amount
+    
+    if total_deduction > source_balance:
+        raise HTTPException(status_code=400, detail=f"Insufficient balance. Available: ${source_balance}")
+    
+    # Perform transfer
+    await db.users.update_one(
+        {"id": user["id"]},
+        {
+            "$inc": {
+                source_field: -total_deduction,
+                dest_field: net_amount
+            },
+            "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}
+        }
+    )
+    
+    # Record transaction
+    await db.transactions.insert_one({
+        "id": str(uuid.uuid4()),
+        "user_id": user["id"],
+        "type": "internal_transfer",
+        "transfer_type": data.transfer_type,
+        "amount": data.amount,
+        "fee": fee_amount,
+        "fee_percent": fee_percent,
+        "net_amount": net_amount,
+        "status": "completed",
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
+    
+    return {
+        "message": "Transfer successful",
+        "amount": data.amount,
+        "fee": fee_amount,
+        "fee_percent": fee_percent,
+        "net_amount": net_amount
+    }
+
+@api_router.post("/user/user-transfer")
+async def user_transfer(data: UserTransferRequest, user: dict = Depends(get_current_user)):
+    """Transfer from my Deposit wallet to another user's Deposit wallet"""
+    wallet_settings = await get_wallet_settings()
+    min_amount = wallet_settings.get("min_transfer_amount", 1)
+    fee_percent = wallet_settings.get("user_transfer_fee", 0)
+    
+    if data.amount <= 0:
+        raise HTTPException(status_code=400, detail="Invalid amount")
+    
+    if data.amount < min_amount:
+        raise HTTPException(status_code=400, detail=f"Minimum transfer amount is ${min_amount}")
+    
+    # Find recipient
+    if data.identifier_type == "email":
+        recipient = await db.users.find_one({"email": data.recipient_identifier}, {"_id": 0})
+    elif data.identifier_type == "referral_code":
+        recipient = await db.users.find_one({"referral_code": data.recipient_identifier}, {"_id": 0})
+    else:
+        raise HTTPException(status_code=400, detail="Invalid identifier type. Use 'email' or 'referral_code'")
+    
+    if not recipient:
+        raise HTTPException(status_code=404, detail="Recipient not found")
+    
+    if recipient["id"] == user["id"]:
+        raise HTTPException(status_code=400, detail="Cannot transfer to yourself")
+    
+    # Check sender's deposit balance
+    sender_balance = user.get("deposit_balance", 0)
+    fee_amount = data.amount * (fee_percent / 100)
+    total_deduction = data.amount
+    net_amount = data.amount - fee_amount
+    
+    if total_deduction > sender_balance:
+        raise HTTPException(status_code=400, detail=f"Insufficient deposit balance. Available: ${sender_balance}")
+    
+    # Perform transfer
+    # Deduct from sender
+    await db.users.update_one(
+        {"id": user["id"]},
+        {
+            "$inc": {"deposit_balance": -total_deduction},
+            "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}
+        }
+    )
+    
+    # Add to recipient
+    await db.users.update_one(
+        {"id": recipient["id"]},
+        {
+            "$inc": {"deposit_balance": net_amount},
+            "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}
+        }
+    )
+    
+    txn_id = f"TRF-{str(uuid.uuid4())[:8].upper()}"
+    
+    # Record sender transaction
+    await db.transactions.insert_one({
+        "id": str(uuid.uuid4()),
+        "user_id": user["id"],
+        "type": "user_transfer_sent",
+        "txn_id": txn_id,
+        "amount": data.amount,
+        "fee": fee_amount,
+        "fee_percent": fee_percent,
+        "net_amount": net_amount,
+        "recipient_id": recipient["id"],
+        "recipient_email": recipient["email"],
+        "status": "completed",
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
+    
+    # Record recipient transaction
+    await db.transactions.insert_one({
+        "id": str(uuid.uuid4()),
+        "user_id": recipient["id"],
+        "type": "user_transfer_received",
+        "txn_id": txn_id,
+        "amount": net_amount,
+        "sender_id": user["id"],
+        "sender_email": user["email"],
+        "status": "completed",
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
+    
+    return {
+        "message": "Transfer successful",
+        "txn_id": txn_id,
+        "amount": data.amount,
+        "fee": fee_amount,
+        "fee_percent": fee_percent,
+        "net_amount": net_amount,
+        "recipient_email": recipient["email"]
+    }
 
 @api_router.post("/user/check-activation")
 async def check_activation(user: dict = Depends(get_current_user)):
