@@ -130,3 +130,28 @@ Build an MLM project named GEM BOT with:
    - Fields: MT5 Server, Username, Password
    - Terms & Conditions checkbox required
    - Dashboard shows "MT5 Connected" status after submission
+
+## Update: Dec 2025 - Team Page Enhancements
+
+### Changes Made:
+1. **Direct Team Tab** - Added dedicated "Direct Team" tab as the first/default tab
+   - Shows only Level 1 (direct) referrals in a prominent card layout
+   - Displays member details: name, email, join date, active/inactive status
+   - Active/inactive member count summary cards when there are members
+   - Empty state with call-to-action buttons when no direct referrals
+
+2. **Share on WhatsApp Button** - Added in two locations:
+   - Header area (alongside Refresh and Copy Link buttons)
+   - Empty state area (alongside Copy Referral Link button)
+   - Pre-filled WhatsApp message includes:
+     - GEM BOT platform introduction
+     - User's unique referral link
+     - Key benefits ($100 activation, 10-level income)
+
+3. **Three-Tab Layout** for Team page:
+   - **Direct Team** (default) - Shows Level 1 referrals only
+   - **All Levels** - Shows full 10-level hierarchy view
+   - **All Members** - Shows flat list of all team members
+
+### Files Modified:
+- `/app/frontend/src/pages/Team.jsx` - Complete Team page with new tabs and WhatsApp share
