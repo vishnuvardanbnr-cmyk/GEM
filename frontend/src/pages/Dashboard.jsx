@@ -14,7 +14,8 @@ import {
   Server,
   User,
   Lock,
-  CheckCircle2
+  CheckCircle2,
+  FileText
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
@@ -23,9 +24,10 @@ import { Progress } from "../components/ui/progress";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Checkbox } from "../components/ui/checkbox";
+import { ScrollArea } from "../components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../components/ui/dialog";
 import { toast } from "sonner";
-import { userAPI } from "../lib/api";
+import { userAPI, publicAPI } from "../lib/api";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -34,7 +36,10 @@ export default function Dashboard() {
   const [data, setData] = useState(null);
   
   // Activation state
+  const [activateOpen, setActivateOpen] = useState(false);
   const [activating, setActivating] = useState(false);
+  const [activationTerms, setActivationTerms] = useState("");
+  const [termsAccepted, setTermsAccepted] = useState(false);
   
   // MT5 submission state
   const [mt5Open, setMt5Open] = useState(false);
