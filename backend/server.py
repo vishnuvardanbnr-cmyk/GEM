@@ -496,6 +496,77 @@ async def distribute_additional_commissions(user_id: str, amount: float, income_
             "created_at": datetime.now(timezone.utc).isoformat()
         })
 
+async def flush_temporary_wallet(user_id: str):
+    """
+    Flush temporary wallet to main wallet when user renews during grace period.
+    Also update pending_grace transactions to completed.
+    """
+    user = await db.users.find_one({"id": user_id}, {"_id": 0})
+    if not user:
+        return
+    
+    temp_balance = user.get("temporary_wallet", 0)
+    if temp_balance > 0:
+        # Move temporary wallet to main wallet
+        await db.users.update_one(
+            {"id": user_id},
+            {
+                "$inc": {"wallet_balance": temp_balance, "total_income": temp_balance},
+                "$set": {"temporary_wallet": 0, "updated_at": datetime.now(timezone.utc).isoformat()}
+            }
+        )
+        
+        # Update pending_grace transactions to completed
+        await db.transactions.update_many(
+            {"user_id": user_id, "status": "pending_grace"},
+            {"$set": {"status": "completed", "flushed_at": datetime.now(timezone.utc).isoformat()}}
+        )
+        
+        # Record flush transaction
+        await db.transactions.insert_one({
+            "id": str(uuid.uuid4()),
+            "user_id": user_id,
+            "type": "grace_period_flush",
+            "amount": temp_balance,
+            "status": "completed",
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
+
+async def forfeit_temporary_wallet(user_id: str):
+    """
+    Forfeit temporary wallet when grace period expires without renewal.
+    Income is lost forever.
+    """
+    user = await db.users.find_one({"id": user_id}, {"_id": 0})
+    if not user:
+        return
+    
+    temp_balance = user.get("temporary_wallet", 0)
+    if temp_balance > 0:
+        # Clear temporary wallet (income is forfeited)
+        await db.users.update_one(
+            {"id": user_id},
+            {
+                "$set": {"temporary_wallet": 0, "updated_at": datetime.now(timezone.utc).isoformat()}
+            }
+        )
+        
+        # Update pending_grace transactions to forfeited
+        await db.transactions.update_many(
+            {"user_id": user_id, "status": "pending_grace"},
+            {"$set": {"status": "forfeited", "forfeited_at": datetime.now(timezone.utc).isoformat()}}
+        )
+        
+        # Record forfeit transaction
+        await db.transactions.insert_one({
+            "id": str(uuid.uuid4()),
+            "user_id": user_id,
+            "type": "grace_period_forfeit",
+            "amount": temp_balance,
+            "status": "completed",
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
+
 async def check_and_activate_user(user_id: str):
     """Check user's deposit and activate subscription if sufficient"""
     user = await db.users.find_one({"id": user_id}, {"_id": 0})
@@ -504,8 +575,11 @@ async def check_and_activate_user(user_id: str):
     
     balance = await get_wallet_balance(user["wallet_address"])
     sub_settings = await get_subscription_settings()
+    grace_period_hours = sub_settings.get("grace_period_hours", 48)
     
-    is_renewal = user.get("is_active", False)
+    # Determine if this is activation or renewal
+    current_status = get_user_subscription_status(user, grace_period_hours)
+    is_renewal = current_status in ["active", "grace_period"]
     required_amount = sub_settings["renewal_amount"] if is_renewal else sub_settings["activation_amount"]
     income_type = "renewal" if is_renewal else "activation"
     
@@ -521,6 +595,10 @@ async def check_and_activate_user(user_id: str):
                 }
             }
         )
+        
+        # If renewing during grace period, flush temporary wallet
+        if current_status == "grace_period":
+            await flush_temporary_wallet(user_id)
         
         # Record activation/renewal transaction
         await db.transactions.insert_one({
