@@ -1066,6 +1066,11 @@ async def get_privacy():
     content = await db.content.find_one({"type": "privacy"}, {"_id": 0})
     return content if content else {"type": "privacy", "content": "Privacy Policy content will be added by admin."}
 
+@api_router.get("/public/activation-terms")
+async def get_activation_terms():
+    content = await db.content.find_one({"type": "activation_terms"}, {"_id": 0})
+    return content if content else {"type": "activation_terms", "content": "<h3>Activation Terms & Conditions</h3><p>By activating your account, you agree to:</p><ul><li>Pay the activation fee of $100 USDT</li><li>Maintain an active subscription for network benefits</li><li>Follow all platform rules and guidelines</li><li>Not engage in any fraudulent activities</li></ul><p>Your account will be activated for 30 days upon successful payment.</p>"}
+
 @api_router.put("/admin/content/{content_type}")
 async def admin_update_content(content_type: str, data: dict, admin: dict = Depends(get_current_admin)):
     await db.content.update_one(
