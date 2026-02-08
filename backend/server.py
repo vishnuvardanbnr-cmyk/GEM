@@ -105,6 +105,12 @@ class LevelSettingsV2(BaseModel):
     renewal_percentage: float
     min_direct_referrals: int
 
+class MT5Credentials(BaseModel):
+    mt5_server: str
+    mt5_username: str
+    mt5_password: str
+    terms_accepted: bool
+
 class UserResponse(BaseModel):
     id: str
     email: str
