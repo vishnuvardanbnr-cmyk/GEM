@@ -30,7 +30,6 @@ import { userAPI } from "../lib/api";
 export default function Dashboard() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [copied, setCopied] = useState(false);
   const [data, setData] = useState(null);
   
