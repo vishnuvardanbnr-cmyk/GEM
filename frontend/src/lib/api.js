@@ -60,6 +60,7 @@ export const userAPI = {
   getWallet: () => api.get('/user/wallet'),
   withdraw: (data) => api.post('/user/withdraw', data),
   checkActivation: () => api.post('/user/check-activation'),
+  submitMT5: (data) => api.post('/user/submit-mt5', data),
   getTransactions: () => api.get('/user/transactions'),
 };
 
