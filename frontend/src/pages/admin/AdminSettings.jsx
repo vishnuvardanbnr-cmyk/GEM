@@ -28,7 +28,8 @@ export default function AdminSettings() {
   
   const [subscription, setSubscription] = useState({
     activation_amount: 100,
-    renewal_amount: 70
+    renewal_amount: 70,
+    grace_period_hours: 48
   });
   
   const [smtp, setSmtp] = useState({
