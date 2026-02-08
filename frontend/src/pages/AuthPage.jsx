@@ -4,7 +4,6 @@ import { Gem, Mail, ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "../components/ui/input-otp";
 import { toast } from "sonner";
 import { authAPI } from "../lib/api";
 
