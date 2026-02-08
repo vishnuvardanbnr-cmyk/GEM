@@ -114,3 +114,19 @@ Build an MLM project named GEM BOT with:
    - Located above Level Settings in admin panel
    - Separate activation and renewal percentage for each user
    - These users get commission from ALL activations/renewals in the system
+
+## Update: Dashboard & MT5 Flow
+
+### Changes Made:
+1. **Activate Button** - Replaced "Check Status" with "Activate Now" button
+2. **Activation Popup** - Shows:
+   - Activation fee ($100 USDT)
+   - Deposit wallet address with copy button
+   - Important notices (BEP20 network, confirmation time)
+   - "I've Made the Payment - Verify" button
+
+3. **MT5 Credentials Flow** - After account activation:
+   - Popup appears automatically for MT5 submission
+   - Fields: MT5 Server, Username, Password
+   - Terms & Conditions checkbox required
+   - Dashboard shows "MT5 Connected" status after submission
