@@ -14,7 +14,6 @@ import {
   Server,
   User,
   Lock,
-  FileText,
   CheckCircle2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
