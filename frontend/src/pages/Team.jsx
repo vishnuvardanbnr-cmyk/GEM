@@ -89,6 +89,18 @@ export default function Team() {
     }
   };
 
+  const shareOnWhatsApp = async () => {
+    try {
+      const profile = await userAPI.getProfile();
+      const link = `${window.location.origin}/auth?ref=${profile.data.referral_code}`;
+      const message = `🚀 Join GEM BOT MLM Platform!\n\nStart earning with our 10-level income structure. Use my referral link to sign up:\n\n${link}\n\n💰 $100 to activate | Earn on 10 levels!`;
+      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+      window.open(whatsappUrl, '_blank');
+    } catch (error) {
+      toast.error("Failed to share link");
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
