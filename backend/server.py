@@ -1237,6 +1237,74 @@ async def admin_update_content(content_type: str, data: dict, admin: dict = Depe
 async def root():
     return {"message": "GEM BOT MLM API", "version": "1.0.0"}
 
+# ==================== GRACE PERIOD MANAGEMENT ====================
+
+@api_router.post("/admin/process-expired-grace-periods")
+async def process_expired_grace_periods(admin: dict = Depends(get_current_admin)):
+    """
+    Admin endpoint to manually process expired grace periods.
+    Forfeits temporary wallet for users whose grace period has expired.
+    """
+    sub_settings = await get_subscription_settings()
+    grace_period_hours = sub_settings.get("grace_period_hours", 48)
+    
+    # Find users with temporary wallet balance
+    users_with_temp = await db.users.find(
+        {"temporary_wallet": {"$gt": 0}},
+        {"_id": 0}
+    ).to_list(1000)
+    
+    forfeited_count = 0
+    forfeited_total = 0
+    
+    for user in users_with_temp:
+        status = get_user_subscription_status(user, grace_period_hours)
+        if status == "inactive":  # Grace period expired
+            temp_amount = user.get("temporary_wallet", 0)
+            await forfeit_temporary_wallet(user["id"])
+            forfeited_count += 1
+            forfeited_total += temp_amount
+    
+    return {
+        "message": f"Processed {forfeited_count} users",
+        "forfeited_count": forfeited_count,
+        "forfeited_total": forfeited_total
+    }
+
+@api_router.get("/admin/grace-period-users")
+async def get_grace_period_users(admin: dict = Depends(get_current_admin)):
+    """
+    Get list of users currently in grace period or with pending temporary wallet.
+    """
+    sub_settings = await get_subscription_settings()
+    grace_period_hours = sub_settings.get("grace_period_hours", 48)
+    
+    # Find all users with subscription
+    all_users = await db.users.find(
+        {"subscription_expires": {"$ne": None}},
+        {"_id": 0}
+    ).to_list(1000)
+    
+    grace_period_users = []
+    for user in all_users:
+        status = get_user_subscription_status(user, grace_period_hours)
+        if status == "grace_period" or user.get("temporary_wallet", 0) > 0:
+            expires = datetime.fromisoformat(user["subscription_expires"])
+            grace_end = expires + timedelta(hours=grace_period_hours)
+            
+            grace_period_users.append({
+                "id": user["id"],
+                "email": user["email"],
+                "first_name": user.get("first_name"),
+                "last_name": user.get("last_name"),
+                "subscription_status": status,
+                "subscription_expires": user["subscription_expires"],
+                "grace_period_ends": grace_end.isoformat(),
+                "temporary_wallet": user.get("temporary_wallet", 0)
+            })
+    
+    return {"users": grace_period_users, "count": len(grace_period_users)}
+
 # ==================== SETUP ====================
 
 @api_router.post("/setup/admin")
