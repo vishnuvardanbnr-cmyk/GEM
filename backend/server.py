@@ -820,6 +820,31 @@ async def check_activation(user: dict = Depends(get_current_user)):
     updated_user = await db.users.find_one({"id": user["id"]}, {"_id": 0})
     return {"activated": activated, "user": updated_user}
 
+@api_router.post("/user/submit-mt5")
+async def submit_mt5_credentials(data: MT5Credentials, user: dict = Depends(get_current_user)):
+    if not user.get("is_active"):
+        raise HTTPException(status_code=400, detail="Account must be activated first")
+    
+    if not data.terms_accepted:
+        raise HTTPException(status_code=400, detail="You must accept the terms and conditions")
+    
+    await db.users.update_one(
+        {"id": user["id"]},
+        {
+            "$set": {
+                "mt5_server": data.mt5_server,
+                "mt5_username": data.mt5_username,
+                "mt5_password": data.mt5_password,
+                "mt5_submitted": True,
+                "mt5_submitted_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+        }
+    )
+    
+    updated_user = await db.users.find_one({"id": user["id"]}, {"_id": 0})
+    return {"message": "MT5 credentials submitted successfully", "user": updated_user}
+
 @api_router.get("/user/transactions")
 async def get_transactions(user: dict = Depends(get_current_user)):
     transactions = await db.transactions.find(
