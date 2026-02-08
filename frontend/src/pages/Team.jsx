@@ -275,16 +275,153 @@ export default function Team() {
 
       {/* Tabs Section */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 lg:w-auto lg:inline-grid">
-          <TabsTrigger value="hierarchy" className="gap-2">
-            <Layers className="w-4 h-4" />
-            Team Hierarchy
+        <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-grid">
+          <TabsTrigger value="direct" className="gap-2" data-testid="direct-team-tab">
+            <UserPlus className="w-4 h-4" />
+            Direct Team
           </TabsTrigger>
-          <TabsTrigger value="members" className="gap-2">
+          <TabsTrigger value="hierarchy" className="gap-2" data-testid="hierarchy-tab">
+            <Layers className="w-4 h-4" />
+            All Levels
+          </TabsTrigger>
+          <TabsTrigger value="members" className="gap-2" data-testid="members-tab">
             <Users className="w-4 h-4" />
             All Members
           </TabsTrigger>
         </TabsList>
+
+        {/* Direct Team Tab */}
+        <TabsContent value="direct" className="space-y-4">
+          <Card data-testid="direct-team-card">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="font-heading text-lg flex items-center gap-2">
+                  <Crown className="w-5 h-5 text-emerald-600" />
+                  Direct Referrals (Level 1)
+                </CardTitle>
+                <Badge className="bg-emerald-100 text-emerald-700">
+                  {directCount} {directCount === 1 ? "member" : "members"}
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {directCount > 0 ? (
+                <div className="space-y-3">
+                  {data?.levels?.find(l => l.level === 1)?.members.map((member, idx) => (
+                    <div 
+                      key={member.id}
+                      className="flex items-center justify-between p-4 bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-100 rounded-xl hover:shadow-md transition-all"
+                      data-testid={`direct-member-${member.id}`}
+                      style={{ animationDelay: `${idx * 50}ms` }}
+                    >
+                      <div className="flex items-center gap-4">
+                        <Avatar className="w-12 h-12 ring-2 ring-emerald-200 ring-offset-2">
+                          <AvatarFallback className={`font-semibold text-lg ${
+                            member.is_active 
+                              ? 'bg-emerald-500 text-white' 
+                              : 'bg-neutral-200 text-neutral-500'
+                          }`}>
+                            {member.first_name?.[0] || member.email?.[0]?.toUpperCase() || '?'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-semibold text-neutral-900 text-lg">
+                            {member.first_name || "Unknown"} {member.last_name || ""}
+                          </p>
+                          <div className="flex items-center gap-2 text-sm text-neutral-500">
+                            <Mail className="w-3.5 h-3.5" />
+                            {member.email}
+                          </div>
+                          {member.created_at && (
+                            <div className="flex items-center gap-2 text-xs text-neutral-400 mt-1">
+                              <Calendar className="w-3 h-3" />
+                              Joined {new Date(member.created_at).toLocaleDateString()}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end gap-2">
+                        {member.is_active ? (
+                          <Badge className="bg-emerald-500 text-white">
+                            <UserCheck className="w-3.5 h-3.5 mr-1" /> Active
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-amber-100 text-amber-700">
+                            <UserX className="w-3.5 h-3.5 mr-1" /> Inactive
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-16">
+                  <div className="w-20 h-20 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-4">
+                    <UserPlus className="w-10 h-10 text-emerald-400" />
+                  </div>
+                  <h3 className="font-heading text-xl font-semibold text-neutral-900">
+                    No Direct Referrals Yet
+                  </h3>
+                  <p className="text-neutral-500 mt-2 max-w-sm mx-auto">
+                    Share your referral link to invite people directly to your network.
+                  </p>
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-6">
+                    <Button 
+                      onClick={copyReferralLink}
+                      className="bg-emerald-600 hover:bg-emerald-700"
+                    >
+                      <Copy className="w-4 h-4 mr-2" />
+                      Copy Referral Link
+                    </Button>
+                    <Button 
+                      onClick={shareOnWhatsApp}
+                      className="bg-green-500 hover:bg-green-600"
+                    >
+                      <MessageCircle className="w-4 h-4 mr-2" />
+                      Share on WhatsApp
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+          
+          {/* Direct Team Stats */}
+          {directCount > 0 && (
+            <div className="grid md:grid-cols-2 gap-4">
+              <Card className="border-l-4 border-l-emerald-500">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-neutral-500 text-xs uppercase tracking-wider">Active Direct</p>
+                      <p className="font-heading text-2xl font-bold text-emerald-600 num-display mt-1">
+                        {data?.levels?.find(l => l.level === 1)?.members.filter(m => m.is_active).length || 0}
+                      </p>
+                    </div>
+                    <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center">
+                      <UserCheck className="w-6 h-6 text-emerald-600" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="border-l-4 border-l-amber-500">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-neutral-500 text-xs uppercase tracking-wider">Inactive Direct</p>
+                      <p className="font-heading text-2xl font-bold text-amber-600 num-display mt-1">
+                        {data?.levels?.find(l => l.level === 1)?.members.filter(m => !m.is_active).length || 0}
+                      </p>
+                    </div>
+                    <div className="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center">
+                      <UserX className="w-6 h-6 text-amber-600" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </TabsContent>
 
         {/* Hierarchy Tab */}
         <TabsContent value="hierarchy" className="space-y-4">
