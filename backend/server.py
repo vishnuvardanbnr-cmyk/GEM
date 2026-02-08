@@ -328,7 +328,9 @@ async def get_subscription_settings():
     return {"activation_amount": 100.0, "renewal_amount": 70.0}
 
 async def distribute_level_income(user_id: str, amount: float, income_type: str):
-    """Distribute income to upline sponsors based on level settings"""
+    """Distribute income to upline sponsors based on level settings
+    income_type: 'activation' or 'renewal'
+    """
     level_settings = await get_level_settings()
     user = await db.users.find_one({"id": user_id}, {"_id": 0})
     if not user or not user.get("sponsor_id"):
@@ -350,7 +352,13 @@ async def distribute_level_income(user_id: str, amount: float, income_type: str)
         sponsor_direct_referrals = await db.users.count_documents({"sponsor_id": current_sponsor_id})
         
         if sponsor_direct_referrals >= level_config["min_direct_referrals"] and sponsor.get("is_active"):
-            income = amount * (level_config["percentage"] / 100)
+            # Use appropriate percentage based on income type
+            if income_type == "activation":
+                percentage = level_config.get("activation_percentage", level_config.get("percentage", 0))
+            else:  # renewal
+                percentage = level_config.get("renewal_percentage", level_config.get("percentage", 0))
+            
+            income = amount * (percentage / 100)
             
             # Update sponsor's wallet balance and total income
             await db.users.update_one(
@@ -361,7 +369,7 @@ async def distribute_level_income(user_id: str, amount: float, income_type: str)
                 }
             )
             
-            # Record income transaction
+            # Record income transaction with income_type
             await db.transactions.insert_one({
                 "id": str(uuid.uuid4()),
                 "user_id": current_sponsor_id,
@@ -376,6 +384,9 @@ async def distribute_level_income(user_id: str, amount: float, income_type: str)
         
         current_sponsor_id = sponsor.get("sponsor_id")
         level += 1
+    
+    # Also distribute additional commissions
+    await distribute_additional_commissions(user_id, amount, income_type)
 
 async def check_and_activate_user(user_id: str):
     """Check user's deposit and activate subscription if sufficient"""
