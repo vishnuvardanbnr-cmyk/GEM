@@ -388,6 +388,47 @@ async def distribute_level_income(user_id: str, amount: float, income_type: str)
     # Also distribute additional commissions
     await distribute_additional_commissions(user_id, amount, income_type)
 
+async def distribute_additional_commissions(user_id: str, amount: float, income_type: str):
+    """Distribute additional commissions to specially configured users"""
+    additional_commissions = await db.additional_commissions.find({}, {"_id": 0}).to_list(1000)
+    
+    for commission in additional_commissions:
+        target_user = await db.users.find_one({"id": commission["user_id"]}, {"_id": 0})
+        if not target_user:
+            continue
+        
+        # Get percentage based on income type
+        if income_type == "activation":
+            percentage = commission.get("activation_percentage", 0)
+        else:  # renewal
+            percentage = commission.get("renewal_percentage", 0)
+        
+        if percentage <= 0:
+            continue
+        
+        income = amount * (percentage / 100)
+        
+        # Update user's wallet balance and total income
+        await db.users.update_one(
+            {"id": commission["user_id"]},
+            {
+                "$inc": {"wallet_balance": income, "total_income": income},
+                "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}
+            }
+        )
+        
+        # Record additional commission transaction
+        await db.transactions.insert_one({
+            "id": str(uuid.uuid4()),
+            "user_id": commission["user_id"],
+            "type": "additional_commission",
+            "amount": income,
+            "from_user_id": user_id,
+            "income_type": income_type,
+            "status": "completed",
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
+
 async def check_and_activate_user(user_id: str):
     """Check user's deposit and activate subscription if sufficient"""
     user = await db.users.find_one({"id": user_id}, {"_id": 0})
