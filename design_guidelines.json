@@ -1,0 +1,134 @@
+{
+  "brand_identity": {
+    "name": "GEM BOT",
+    "theme_mode": "light",
+    "core_archetype": "Organic & Earthy (Trust/Wealth)",
+    "primary_vibe": "Clean, Transparent, Premium",
+    "target_audience": "Network Marketers, Crypto Users"
+  },
+  "typography": {
+    "font_family_heading": "Outfit, sans-serif",
+    "font_family_body": "Manrope, sans-serif",
+    "font_url": "https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap",
+    "scale": {
+      "h1": "text-4xl md:text-5xl font-bold tracking-tight",
+      "h2": "text-3xl md:text-4xl font-semibold tracking-tight",
+      "h3": "text-2xl font-semibold",
+      "body": "text-base font-medium leading-relaxed",
+      "caption": "text-sm text-muted-foreground",
+      "micro": "text-xs font-semibold tracking-wider uppercase"
+    },
+    "rules": [
+      "Use Outfit for all Headings (h1-h3) and Stats/Currency display.",
+      "Use Manrope for body text, forms, and small UI elements.",
+      "Never use pure black text. Use soft charcoal #1A1C1E."
+    ]
+  },
+  "colors": {
+    "palette": {
+      "background": {
+        "default": "#FDFCF8",
+        "paper": "#FFFFFF",
+        "subtle": "#F7F9FC"
+      },
+      "primary": {
+        "DEFAULT": "#047857",
+        "foreground": "#FFFFFF",
+        "light": "#34D399",
+        "dark": "#064E3B",
+        "50": "#ECFDF5",
+        "100": "#D1FAE5",
+        "500": "#10B981",
+        "900": "#064E3B"
+      },
+      "secondary": {
+        "DEFAULT": "#A855F7",
+        "foreground": "#FFFFFF",
+        "light": "#C084FC",
+        "dark": "#6B21A8"
+      },
+      "neutral": {
+        "900": "#0F172A",
+        "800": "#1E293B",
+        "500": "#64748B",
+        "200": "#E2E8F0",
+        "100": "#F1F5F9"
+      },
+      "status": {
+        "success": "#10B981",
+        "warning": "#F59E0B",
+        "error": "#EF4444",
+        "info": "#3B82F6"
+      }
+    },
+    "usage_rules": {
+      "background": "Use #FDFCF8 for the main app background (Milk White).",
+      "cards": "Use #FFFFFF with subtle border and shadow for content cards.",
+      "text_contrast": "Ensure headings are #0F172A and body is #334155.",
+      "gradients": "Use subtle mesh gradients of Primary-50 to White for hero sections. No harsh linear gradients."
+    }
+  },
+  "layout": {
+    "structure": "Mobile-First Bottom Navigation",
+    "spacing": {
+      "container_padding": "p-4 md:p-8",
+      "section_gap": "gap-6 md:gap-12",
+      "element_gap": "gap-3"
+    },
+    "grid_system": {
+      "dashboard": "grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4",
+      "team": "grid-cols-1 lg:grid-cols-3 gap-6"
+    },
+    "border_radius": {
+      "default": "rounded-2xl",
+      "card": "rounded-3xl",
+      "button": "rounded-full"
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all active:scale-95",
+      "secondary": "bg-white text-primary border border-primary/20 hover:bg-primary/5",
+      "ghost": "hover:bg-neutral-100 text-neutral-600"
+    },
+    "cards": {
+      "default": "bg-white border border-neutral-100 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)] transition-shadow",
+      "highlight": "bg-primary/5 border border-primary/10"
+    },
+    "inputs": {
+      "default": "bg-white border-neutral-200 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl h-12"
+    },
+    "navigation": {
+      "bottom_bar": "fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-white/20 shadow-lg z-50 h-16 md:hidden flex justify-around items-center"
+    }
+  },
+  "visual_enhancers": {
+    "shadows": "Use colored shadows for primary actions (shadow-emerald-500/20).",
+    "glassmorphism": "Use backdrop-blur-xl for overlays, modals, and sticky headers.",
+    "textures": "Add subtle noise texture to the #FDFCF8 background to make it feel organic.",
+    "icons": "Use Lucide React icons. Stroke width 1.5px for elegance."
+  },
+  "motion": {
+    "page_transition": "initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}",
+    "card_hover": "whileHover={{ y: -4 }} transition={{ type: 'spring', stiffness: 300 }}",
+    "list_stagger": "staggerChildren: 0.05"
+  },
+  "assets": {
+    "logo_url": "https://images.unsplash.com/photo-1673031288723-f198cd527b97?auto=format&fit=crop&w=128&q=80",
+    "placeholder_user": "https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=400&auto=format&fit=crop&q=60",
+    "gem_3d": "https://images.unsplash.com/photo-1676965970669-85a88212f9eb?auto=format&fit=crop&w=800&q=80"
+  },
+  "universal_guidelines": [
+    "Do not use dark mode toggle. Enforce light mode 'Milk Theme'.",
+    "Ensure all numbers (USDT, Levels) are Monospace or Manrope for alignment.",
+    "Use Skeleton loaders for all data fetching states.",
+    "All interactive elements must have data-testid attributes."
+  ],
+  "instructions_to_main_agent": [
+    "1. Setup Shadcn UI with the custom colors defined above.",
+    "2. Install 'framer-motion', 'lucide-react', 'recharts'.",
+    "3. Create a Layout component that conditionally renders BottomNav (mobile) or Sidebar (desktop/admin).",
+    "4. For the Admin panel, use a slightly denser layout but keep the same color system.",
+    "5. Use the 'gem_3d' image as a subtle background element in the Hero section."
+  ]
+}
