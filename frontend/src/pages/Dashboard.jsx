@@ -72,12 +72,30 @@ export default function Dashboard() {
     }
   };
 
+  const openActivatePopup = async () => {
+    // Fetch activation terms
+    try {
+      const response = await publicAPI.getActivationTerms();
+      setActivationTerms(response.data.content);
+    } catch (error) {
+      setActivationTerms("<p>Please accept the terms and conditions to proceed with activation.</p>");
+    }
+    setTermsAccepted(false);
+    setActivateOpen(true);
+  };
+
   const handleActivate = async () => {
+    if (!termsAccepted) {
+      toast.error("Please accept the terms and conditions");
+      return;
+    }
+    
     setActivating(true);
     try {
       const response = await userAPI.checkActivation();
       if (response.data.activated) {
         toast.success("Account activated successfully!");
+        setActivateOpen(false);
         // Show MT5 modal after activation
         setMt5Open(true);
         fetchDashboard();
