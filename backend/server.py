@@ -91,9 +91,26 @@ class SubscriptionSettings(BaseModel):
     renewal_amount: float
     grace_period_hours: int = 48
 
+class WalletSettings(BaseModel):
+    earnings_to_deposit_fee: float = 0  # Percentage fee
+    deposit_to_earnings_fee: float = 0  # Percentage fee
+    user_transfer_fee: float = 0  # Percentage fee for user-to-user transfer
+    withdrawal_fee: float = 0  # Fixed USDT fee for external withdrawal
+    min_transfer_amount: float = 1  # Minimum amount for any transfer
+    min_withdrawal_amount: float = 10  # Minimum amount for external withdrawal
+
 class WithdrawRequest(BaseModel):
     amount: float
     to_address: str
+
+class InternalTransferRequest(BaseModel):
+    amount: float
+    transfer_type: str  # "earnings_to_deposit" or "deposit_to_earnings"
+
+class UserTransferRequest(BaseModel):
+    amount: float
+    recipient_identifier: str  # Email or referral code
+    identifier_type: str  # "email" or "referral_code"
 
 class AdditionalCommission(BaseModel):
     user_id: str
