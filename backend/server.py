@@ -420,7 +420,16 @@ async def check_and_activate_user(user_id: str):
 
 @api_router.post("/auth/send-otp")
 async def send_otp(data: OTPRequest, background_tasks: BackgroundTasks):
-    otp = generate_otp()
+    # Check if SMTP is configured
+    smtp_settings = await get_smtp_settings()
+    
+    if smtp_settings and smtp_settings.get("host"):
+        # SMTP configured - generate random OTP
+        otp = generate_otp()
+    else:
+        # SMTP not configured - use default OTP "000000"
+        otp = "000000"
+    
     expires = datetime.now(timezone.utc) + timedelta(minutes=10)
     
     await db.otps.update_one(
@@ -433,15 +442,22 @@ async def send_otp(data: OTPRequest, background_tasks: BackgroundTasks):
     subject = template["subject"]
     body = template["body"].replace("{{otp}}", otp)
     
-    background_tasks.add_task(send_email, data.email, subject, body)
+    # Only send email if SMTP is configured
+    if smtp_settings and smtp_settings.get("host"):
+        background_tasks.add_task(send_email, data.email, subject, body)
+    else:
+        logger.info(f"SMTP not configured. Default OTP '000000' set for {data.email}")
     
     # Check if user exists
     user = await db.users.find_one({"email": data.email}, {"_id": 0})
     
+    smtp_configured = smtp_settings is not None and smtp_settings.get("host") is not None
+    
     return {
-        "message": "OTP sent successfully",
+        "message": "OTP sent successfully" if smtp_configured else "Use default OTP: 000000 (SMTP not configured)",
         "user_exists": user is not None,
-        "is_profile_complete": user.get("first_name") is not None if user else False
+        "is_profile_complete": user.get("first_name") is not None if user else False,
+        "smtp_configured": smtp_configured
     }
 
 @api_router.post("/auth/verify-otp")
