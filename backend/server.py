@@ -89,6 +89,7 @@ class EmailTemplate(BaseModel):
 class SubscriptionSettings(BaseModel):
     activation_amount: float
     renewal_amount: float
+    grace_period_hours: int = 48
 
 class WithdrawRequest(BaseModel):
     amount: float
