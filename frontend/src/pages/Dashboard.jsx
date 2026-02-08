@@ -69,23 +69,22 @@ export default function Dashboard() {
     }
   };
 
-  const handleCheckActivation = async () => {
-    setRefreshing(true);
+  const handleActivate = async () => {
+    setActivating(true);
     try {
       const response = await userAPI.checkActivation();
       if (response.data.activated) {
         toast.success("Account activated successfully!");
-        setActivateOpen(false);
         // Show MT5 modal after activation
         setMt5Open(true);
         fetchDashboard();
       } else {
-        toast.info("Deposit not detected yet. Please wait for blockchain confirmation.");
+        toast.error("Insufficient deposit balance. Please top up from Wallet page.");
       }
     } catch (error) {
       toast.error("Failed to check activation");
     } finally {
-      setRefreshing(false);
+      setActivating(false);
     }
   };
 
