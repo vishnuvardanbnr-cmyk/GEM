@@ -326,14 +326,57 @@ class GemBotAPITester:
 
     def test_delete_additional_commission(self, user_id):
         """Test deleting additional commission"""
-        success, response = self.run_test(
-            "Delete Additional Commission",
-            "DELETE",
-            f"admin/additional-commissions/{user_id}",
-            200,
-            is_admin=True
-        )
-        return success, response
+        url = f"{self.api_url}/admin/additional-commissions/{user_id}"
+        headers = {'Content-Type': 'application/json'}
+        if self.admin_token:
+            headers['Authorization'] = f'Bearer {self.admin_token}'
+
+        self.tests_run += 1
+        print(f"\n🔍 Testing Delete Additional Commission...")
+        
+        try:
+            response = requests.delete(url, headers=headers, timeout=30)
+            success = response.status_code == 200
+            result = {
+                "test_name": "Delete Additional Commission",
+                "endpoint": f"admin/additional-commissions/{user_id}",
+                "expected_status": 200,
+                "actual_status": response.status_code,
+                "success": success,
+                "response": None,
+                "error": None
+            }
+
+            if success:
+                self.tests_passed += 1
+                print(f"✅ Passed - Status: {response.status_code}")
+                try:
+                    result["response"] = response.json()
+                except:
+                    result["response"] = response.text
+            else:
+                print(f"❌ Failed - Expected 200, got {response.status_code}")
+                try:
+                    result["error"] = response.json()
+                except:
+                    result["error"] = response.text
+
+            self.test_results.append(result)
+            return success, result.get("response", {})
+
+        except Exception as e:
+            print(f"❌ Failed - Error: {str(e)}")
+            result = {
+                "test_name": "Delete Additional Commission",
+                "endpoint": f"admin/additional-commissions/{user_id}",
+                "expected_status": 200,
+                "actual_status": "ERROR",
+                "success": False,
+                "response": None,
+                "error": str(e)
+            }
+            self.test_results.append(result)
+            return False, {}
 
     def test_public_terms(self):
         """Test public terms endpoint"""
