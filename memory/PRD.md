@@ -155,3 +155,41 @@ Build an MLM project named GEM BOT with:
 
 ### Files Modified:
 - `/app/frontend/src/pages/Team.jsx` - Complete Team page with new tabs and WhatsApp share
+
+## Update: Dec 2025 - Grace Period & Compression Feature
+
+### Feature Overview:
+When a user's subscription expires, they enter a **grace period** (48 hours by default, admin configurable). During this time, any level income they would earn is stored in a **temporary wallet**. If they renew within the grace period, the temporary wallet is released to their main wallet. If they don't renew, the temporary wallet income is **forfeited** (lost forever) and the user becomes **compressed** (skipped in level income distribution).
+
+### How Compression Works:
+- When calculating level income, inactive/compressed users are completely skipped
+- Income passes to the next active upline in the chain
+- Example: If Admin → User A (active) → User B (inactive) → User C (active)
+  - When User C pays, User A gets Level 1 income (User B is skipped)
+
+### Backend Implementation:
+- `get_user_subscription_status(user, grace_period_hours)` - Returns 'active', 'grace_period', or 'inactive'
+- `distribute_level_income()` - Updated with compression logic, stores grace period income in temporary_wallet
+- `flush_temporary_wallet(user_id)` - Releases temporary wallet to main wallet when user renews
+- `forfeit_temporary_wallet(user_id)` - Forfeits temporary wallet when grace period expires without renewal
+
+### Admin Features:
+- **Grace Period Setting** - Configurable in Settings > Subscription tab (default: 48 hours)
+- **Grace Period Users List** - Admin can view users in grace period via `/api/admin/grace-period-users`
+- **Process Expired Grace Periods** - Admin can manually forfeit expired grace periods via `/api/admin/process-expired-grace-periods`
+
+### User Dashboard Updates:
+- **Grace Period Alert** - Shows when user is in grace period with countdown
+- **Temporary Wallet Alert** - Shows pending grace period income amount
+- **Renew Now Button** - Quick access to wallet page for renewal
+
+### New Database Fields:
+- `temporary_wallet` (float) - Stores grace period income pending release/forfeit
+- Transaction status `pending_grace` - Income held during grace period
+- Transaction types: `grace_period_flush` (released) and `grace_period_forfeit` (forfeited)
+
+### Files Modified:
+- `/app/backend/server.py` - Backend logic for grace period and compression
+- `/app/frontend/src/pages/admin/AdminSettings.jsx` - Grace period setting in admin
+- `/app/frontend/src/pages/Dashboard.jsx` - Grace period alerts and temporary wallet display
+
