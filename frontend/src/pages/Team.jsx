@@ -38,7 +38,7 @@ export default function Team() {
   const [data, setData] = useState(null);
   const [openLevels, setOpenLevels] = useState({});
   const [copied, setCopied] = useState(false);
-  const [activeTab, setActiveTab] = useState("hierarchy");
+  const [activeTab, setActiveTab] = useState("direct");
 
   useEffect(() => {
     fetchTeam();
