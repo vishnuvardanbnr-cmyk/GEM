@@ -149,10 +149,14 @@ export default function AdminSettings() {
       </div>
 
       <Tabs defaultValue="subscription" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="subscription" data-testid="subscription-tab">
             <DollarSign className="w-4 h-4 mr-2" />
             Subscription
+          </TabsTrigger>
+          <TabsTrigger value="wallet" data-testid="wallet-tab">
+            <Wallet className="w-4 h-4 mr-2" />
+            Wallet
           </TabsTrigger>
           <TabsTrigger value="smtp" data-testid="smtp-tab">
             <Mail className="w-4 h-4 mr-2" />
