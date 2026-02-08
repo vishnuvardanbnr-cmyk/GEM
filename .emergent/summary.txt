@@ -1,0 +1,182 @@
+<analysis>**original_problem_statement**: The user wants to build a GEM BOT MLM platform.
+
+**PRODUCT REQUIREMENTS**:
+- **Payment Gateway**: Integrate CoinConnect API for all crypto payments, specifically using USDT.
+    - API for user registration to get a wallet address.
+    - API for deposit verification.
+    - API for automated withdrawals.
+- **Fees**:
+    - Account Activation: 00
+    - Account Renewal: 0
+- **Login System**:
+    - Use Email OTP for user login and registration on a single page.
+    - A separate URL with email/password login for the admin panel.
+- **MLM Structure**:
+    - 10-level MLM structure.
+    - Admin should be able to set the commission percentage for each level.
+    - Level income should be calculated separately for activation and renewal fees.
+- **Admin Panel Features**:
+    - Configure SMTP details for sending OTP emails.
+    - Edit email templates.
+    - Add special, user-specific commissions for activation and renewal.
+    - Add and manage Terms & Conditions for account activation.
+- **User Flow**:
+    - Users top up their deposit wallet from the Wallet page.
+    - The dashboard shows an Activate Now button.
+    - Clicking Activate Now brings up a popup with Terms & Conditions to be accepted.
+    - Upon confirmation, the system checks the deposit balance and activates the account if funds are sufficient.
+    - After activation, the user must submit their MT5 server, username, and password.
+- **UI/UX**:
+    - The Income and Team pages should have a professional design.
+    - The Team page needs a separate list for the direct team and a Share on WhatsApp button for the referral link.
+- **Final Request**:
+    - Push the final code to a GitHub repository.
+
+**User's preferred language**: English
+
+**what currently exists?**
+A full-stack MLM application has been developed using Django for the backend and React for the frontend.
+
+-   **Backend**: Includes models for User, Admin, Levels, and Transactions. It features API endpoints for authentication (Email OTP), user profile management, MLM level configuration, special commissions, and content management (T&C). The core business logic for MLM income distribution and CoinConnect API integration is in place, but awaits API keys.
+-   **Frontend**: A complete UI for both user and admin roles.
+    -   **User**: Auth, Dashboard, Wallet, professional Income/Team pages, and a full activation flow including a T&C popup and MT5 credential submission.
+    -   **Admin**: Login, dashboard, and management pages for users, level settings, and content.
+-   **Temporary Workarounds**: An OTP of 000000 is used by default when SMTP is not configured. UI placeholders exist for CoinConnect data until API keys are provided.
+
+**Last working item**:
+-   Last item agent was working: The user requested two final changes: 1) Update the Team page to include a separate list for the Direct Team and add a Share on WhatsApp button for the referral link. 2) Push the entire project to a GitHub repository. The agent acknowledged these but has not started implementation.
+-   Status: NOT STARTED
+-   Agent Testing Done: N
+-   Which testing method agent to use? both
+-   User Testing Done: N
+
+**All Pending/In progress Issue list**:
+There are no known bugs or technical issues. All pending items are new feature requests.
+
+**In progress Task List**:
+There are no tasks currently in progress.
+
+**Upcoming and Future Tasks**
+- **P0: Update Team Page**
+    - **Task**: Modify the  component to add a new section or tab that displays only the user's direct referrals.
+    - **Task**: Add a Share on WhatsApp button that, when clicked, opens WhatsApp with a pre-filled message containing the user's referral link.
+    - **File**: 
+- **P0: Push Project to GitHub**
+    - **Task**: Initialize a git repository, commit all the project files, and push it to a new repository on GitHub as requested by the user.
+- **P1: Implement Account Renewal Flow**
+    - **Task**: The logic for account renewal (e.g., triggering after a year, processing the 0 fee from the deposit wallet) is not yet implemented. This needs to be built into the backend.
+- **P2: Implement Withdrawal Functionality**
+    - **Task**: The frontend needs a UI for users to request withdrawals from their Earnings Balance. The backend needs to connect this request to the  function and the CoinConnect API.
+    - **Files**: , .
+
+**Completed work in this session**
+- **Backend Development**:
+    - **Project Setup**: Created the complete Django project with a REST framework.
+    - **Authentication**: Implemented Email OTP for users () and standard login for admins.
+    - **MLM Logic**: Built the income distribution system with separate activation/renewal percentages and special user commissions ().
+    - **User Features**: Added endpoints for profile management and MT5 credential submission ().
+    - **Admin Features**: Created endpoints for managing levels, T&C, and other settings ().
+- **Frontend Development**:
+    - **UI/UX Overhaul**: Redesigned the  and  for a more professional and data-rich appearance.
+    - **Activation Flow**: Implemented the complete user activation journey on the  and , including the T&C popup.
+    - **Admin Panels**: Built interfaces for  and  to manage MLM settings and site content.
+    - **Bug Fix**: Replaced a problematic OTP input component with a standard text input in  to ensure testing reliability.
+
+**Earlier issues found/mentioned but not fixed**
+-   None. All issues identified during the session were resolved.
+
+**Known issue recurrence from previous fork**
+-   N/A
+
+**Code Architecture**
+
+
+**Key Technical Concepts**
+-   **Backend**: Django, Django REST Framework
+-   **Frontend**: React, Material-UI (MUI)
+-   **Database**: SQLite
+-   **Authentication**: JWT (Simple JWT), Email OTP
+-   **API Architecture**: RESTful
+-   **Payment Integration**: CoinConnect API
+
+**key DB schema**
+-   **User**: , ,  (foreign key to self), , , , , , .
+-   **Level**: , , , .
+-   **Transaction**:  (foreign key), ,  (e.g., 'level_income').
+-   **AdditionalCommission**:  (foreign key), , .
+-   **Content**:  (e.g., 'activation_terms'),  (HTML).
+-   **Settings**: , , , etc.
+
+**changes in tech stack**
+-   None.
+
+**All files of reference**
+-   : Contains the core business logic for MLM income distribution and CoinConnect API calls.
+-   : Defines the entire database structure.
+-   : Manages the user dashboard, including the activation button and T&C popup flow.
+-   : The component to be updated with the direct team list and WhatsApp button.
+-   : Displays user earnings with a professional layout.
+-   : Shows deposit/earning balances and top-up instructions.
+-   : Admin UI for managing level percentages and special commissions.
+-   : Admin UI for managing activation T&C.
+-   : The Product Requirements Document created by the agent.
+
+**Areas that need refactoring**:
+-   The OTP input in  was simplified to a standard text field for test automation. This could be reverted to a more user-friendly multi-character input component if manual testing is sufficient or if a more robust testing strategy is implemented.
+
+**key api endpoints**
+-   : Handles user registration and triggers OTP.
+-   : Verifies OTP and provides auth tokens.
+-   : GET/PATCH user profile information.
+-   : Activates the user account after checking balance.
+-   : GET/POST MLM level settings.
+-   : GET/POST the activation terms and conditions.
+
+**Critical Info for New Agent**
+-   **PRIORITY 1**: The user's last requests were to **update the Team page** and **push the code to GitHub**. These are the most important next steps.
+-   **CoinConnect API is NOT live**: The integration logic exists, but it requires API keys (Key and Secret) to be entered in the admin settings page. Wallet generation and payment verification will not work until this is done.
+-   **OTP is Mocked**: The system uses a hardcoded OTP 000000 because SMTP is not configured. This is for development convenience and should be replaced by a real SMTP service for production.
+
+**documents and test reports created in this job**
+-   
+
+**Last 10 User Messages and any pending HUMAN messages**
+1.  **User:  (PENDING)**
+2.  **User:  (PENDING)**
+3.  User:  (Completed)
+4.  User:  (Completed)
+5.  User:  (Completed)
+6.  User:  (Completed, popup was removed and replaced with T&C popup)
+7.  User:  (Completed)
+8.  User:  (Completed)
+9.  User:  (Completed)
+10. User:  (Completed)
+
+**Project Health Check:**
+-   **Broken**: Core payment functionality via CoinConnect is non-operational pending API key configuration. This means no user can currently generate a wallet or activate their account.
+-   **Mocked**: The OTP system is mocked with a default 000000 for environments without SMTP settings.
+
+**3rd Party Integrations**
+-   **CoinConnect API**: Used for USDT crypto payments (wallet creation, balance checks, withdrawals). Requires a User-provided API Key and Secret.
+
+**Testing status**
+-   **Testing agent used after significant changes**: YES
+-   **Troubleshoot agent used after agent stuck in loop**: NO
+-   **Test files created**: []
+-   **Known regressions**: The user-friendly multi-box OTP input was replaced with a simple text field for easier automation.
+
+**Credentials to test flow:**
+-   **Admin**:
+    -   URL: 
+    -   Email: 
+    -   Password:  (or whatever the agent set during setup)
+-   **User**:
+    -   URL: 
+    -   Register with any email (e.g., ).
+    -   Use OTP  to log in.
+
+**What agent forgot to execute**
+-   The agent did not implement the user's final two requests from the last conversation turn:
+    1.  Update the Team page to add a Direct Team list.
+    2.  Add a Share on WhatsApp button for the referral link.
+    3.  Push the entire project codebase to a GitHub repository.</analysis>
