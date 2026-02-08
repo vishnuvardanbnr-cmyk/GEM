@@ -388,7 +388,7 @@ async def distribute_level_income(user_id: str, amount: float, income_type: str)
             continue  # Skip this sponsor, don't increment level
         
         # Check if sponsor qualifies for this level income
-        level_config = next((l for l in level_settings if l["level"] == level), None)
+        level_config = next((lvl for lvl in level_settings if lvl["level"] == level), None)
         if not level_config:
             break
         
