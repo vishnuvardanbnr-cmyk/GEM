@@ -11,7 +11,10 @@ import {
   Eye,
   EyeOff,
   Clock,
-  AlertTriangle
+  AlertTriangle,
+  ArrowLeftRight,
+  Wallet,
+  Percent
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
@@ -30,6 +33,15 @@ export default function AdminSettings() {
     activation_amount: 100,
     renewal_amount: 70,
     grace_period_hours: 48
+  });
+  
+  const [walletSettings, setWalletSettings] = useState({
+    earnings_to_deposit_fee: 0,
+    deposit_to_earnings_fee: 0,
+    user_transfer_fee: 0,
+    withdrawal_fee: 0,
+    min_transfer_amount: 1,
+    min_withdrawal_amount: 10
   });
   
   const [smtp, setSmtp] = useState({
@@ -52,8 +64,9 @@ export default function AdminSettings() {
 
   const fetchSettings = async () => {
     try {
-      const [subRes, smtpRes, ccRes] = await Promise.all([
+      const [subRes, walletRes, smtpRes, ccRes] = await Promise.all([
         adminAPI.getSubscription(),
+        adminAPI.getWalletSettings(),
         adminAPI.getSMTP(),
         adminAPI.getCoinConnect()
       ]);
