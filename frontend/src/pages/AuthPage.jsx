@@ -173,22 +173,22 @@ export default function AuthPage() {
               </form>
             ) : (
               <div className="space-y-6">
-                <div className="flex justify-center">
-                  <InputOTP
-                    value={otp}
-                    onChange={setOtp}
+                <div>
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     maxLength={6}
+                    placeholder="000000"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    className="h-14 text-center text-2xl tracking-[0.5em] font-mono rounded-xl"
                     data-testid="otp-input"
-                  >
-                    <InputOTPGroup>
-                      <InputOTPSlot index={0} className="w-12 h-12 text-lg" />
-                      <InputOTPSlot index={1} className="w-12 h-12 text-lg" />
-                      <InputOTPSlot index={2} className="w-12 h-12 text-lg" />
-                      <InputOTPSlot index={3} className="w-12 h-12 text-lg" />
-                      <InputOTPSlot index={4} className="w-12 h-12 text-lg" />
-                      <InputOTPSlot index={5} className="w-12 h-12 text-lg" />
-                    </InputOTPGroup>
-                  </InputOTP>
+                    autoFocus
+                  />
+                  <p className="text-center text-sm text-neutral-500 mt-2">
+                    Enter 6-digit OTP
+                  </p>
                 </div>
 
                 <Button 
