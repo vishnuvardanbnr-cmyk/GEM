@@ -351,6 +351,19 @@ async def get_subscription_settings():
         return settings["data"]
     return {"activation_amount": 100.0, "renewal_amount": 70.0, "grace_period_hours": 48}
 
+async def get_wallet_settings():
+    settings = await db.settings.find_one({"type": "wallet"}, {"_id": 0})
+    if settings and settings.get("data"):
+        return settings["data"]
+    return {
+        "earnings_to_deposit_fee": 0,
+        "deposit_to_earnings_fee": 0,
+        "user_transfer_fee": 0,
+        "withdrawal_fee": 0,
+        "min_transfer_amount": 1,
+        "min_withdrawal_amount": 10
+    }
+
 def get_user_subscription_status(user: dict, grace_period_hours: int = 48) -> str:
     """
     Returns user subscription status:
