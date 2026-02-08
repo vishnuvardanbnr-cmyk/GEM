@@ -731,7 +731,8 @@ async def verify_otp(data: OTPVerify):
         "is_active": False,
         "subscription_expires": None,
         "total_income": 0.0,
-        "wallet_balance": 0.0,
+        "wallet_balance": 0.0,  # Earnings wallet
+        "deposit_balance": 0.0,  # Deposit wallet (for activation/renewal)
         "temporary_wallet": 0.0,  # Grace period income storage
         "direct_referrals": 0,
         "created_at": datetime.now(timezone.utc).isoformat(),
