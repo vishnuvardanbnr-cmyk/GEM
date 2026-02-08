@@ -496,12 +496,45 @@ def main():
     
     # Test user endpoints (will likely fail without valid token)
     print("\n=== USER ENDPOINTS ===")
-    tester.test_user_profile()
-    tester.test_user_dashboard()
+    profile_success, profile_response = tester.test_user_profile()
+    dashboard_success, dashboard_response = tester.test_user_dashboard()
     tester.test_user_team()
     tester.test_user_income()
     tester.test_user_wallet()
     tester.test_user_transactions()
+    
+    # Test new activation and MT5 features
+    print("\n=== ACTIVATION & MT5 TESTING ===")
+    
+    # First test check activation (should work for any authenticated user)
+    if tester.user_token:
+        print("🔍 Testing check activation endpoint...")
+        activation_success, activation_response = tester.test_check_activation()
+        if activation_success:
+            print("✅ Check activation endpoint working")
+        
+        # Test MT5 submission with invalid user (inactive)
+        print("🔍 Testing MT5 submission for inactive user...")
+        mt5_data = {
+            "mt5_server": "Test-Server",
+            "mt5_username": "12345", 
+            "mt5_password": "testpass",
+            "terms_accepted": True
+        }
+        mt5_inactive_success, mt5_inactive_response = tester.test_submit_mt5_without_activation(mt5_data)
+        if not mt5_inactive_success:
+            print("✅ MT5 submission correctly rejected for inactive user")
+        
+        # Test MT5 submission without terms acceptance
+        print("🔍 Testing MT5 submission without terms acceptance...")
+        terms_success, terms_response = tester.test_submit_mt5_without_terms()
+        if not terms_success:
+            print("✅ MT5 submission correctly rejected without terms acceptance")
+        
+        # Note: Cannot test successful MT5 submission without activating user first
+        print("ℹ️ Note: Cannot test successful MT5 submission without user activation")
+    else:
+        print("⚠️ Skipping activation & MT5 tests - no user token")
     
     # Test admin endpoints (only if admin login successful)
     print("\n=== ADMIN ENDPOINTS ===")
