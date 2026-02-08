@@ -438,7 +438,9 @@ async def check_and_activate_user(user_id: str):
     balance = await get_wallet_balance(user["wallet_address"])
     sub_settings = await get_subscription_settings()
     
-    required_amount = sub_settings["activation_amount"] if not user.get("is_active") else sub_settings["renewal_amount"]
+    is_renewal = user.get("is_active", False)
+    required_amount = sub_settings["renewal_amount"] if is_renewal else sub_settings["activation_amount"]
+    income_type = "renewal" if is_renewal else "activation"
     
     if balance >= required_amount:
         expires = datetime.now(timezone.utc) + timedelta(days=30)
@@ -453,14 +455,20 @@ async def check_and_activate_user(user_id: str):
             }
         )
         
-        # Record activation transaction
+        # Record activation/renewal transaction
         await db.transactions.insert_one({
             "id": str(uuid.uuid4()),
             "user_id": user_id,
-            "type": "activation" if not user.get("is_active") else "renewal",
+            "type": income_type,
             "amount": required_amount,
             "status": "completed",
             "created_at": datetime.now(timezone.utc).isoformat()
+        })
+        
+        # Distribute level income with correct type
+        await distribute_level_income(user_id, required_amount, income_type)
+        return True
+    return False
         })
         
         # Distribute level income
