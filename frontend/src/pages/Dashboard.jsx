@@ -417,6 +417,70 @@ export default function Dashboard() {
         </Card>
       )}
 
+      {/* Grace Period Alert */}
+      {data?.subscription_status === "grace_period" && (
+        <Card className="border-amber-300 bg-amber-50" data-testid="grace-period-alert">
+          <CardContent className="p-4 md:p-6">
+            <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <Clock className="w-6 h-6 text-amber-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="font-semibold text-amber-800">Grace Period Active</h3>
+                  <p className="text-amber-700 text-sm mt-1">
+                    Your subscription has expired. You are currently in a grace period.
+                  </p>
+                  {data?.grace_period_ends && (
+                    <p className="text-amber-600 text-xs mt-1 font-medium">
+                      Grace period ends: {new Date(data.grace_period_ends).toLocaleString()}
+                    </p>
+                  )}
+                  <p className="text-amber-700 text-sm mt-2">
+                    <AlertTriangle className="w-4 h-4 inline mr-1" />
+                    Any level income earned during this period is held in your temporary wallet.
+                    Renew now to release it to your main wallet!
+                  </p>
+                </div>
+              </div>
+              <Button 
+                onClick={() => navigate("/wallet")}
+                className="bg-amber-600 hover:bg-amber-700 text-white"
+                data-testid="renew-now-btn"
+              >
+                <Zap className="w-4 h-4 mr-2" />
+                Renew Now
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Temporary Wallet Alert (if has balance) */}
+      {(data?.temporary_wallet || 0) > 0 && (
+        <Card className="border-purple-200 bg-purple-50" data-testid="temporary-wallet-alert">
+          <CardContent className="p-4 md:p-6">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+                  <Clock className="w-5 h-5 text-purple-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-purple-800">Pending Grace Period Income</h3>
+                  <p className="text-purple-700 text-sm">
+                    This amount will be released to your wallet when you renew
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="font-heading text-2xl font-bold text-purple-700 num-display">
+                  ${(data?.temporary_wallet || 0).toFixed(2)}
+                </p>
+                <p className="text-xs text-purple-500">Held in temporary wallet</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="card-hover" data-testid="stat-wallet-balance">
