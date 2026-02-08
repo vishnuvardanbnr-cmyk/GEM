@@ -19,7 +19,8 @@ import {
   Calendar,
   Mail,
   MessageCircle,
-  Phone
+  Phone,
+  UserPlus
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
