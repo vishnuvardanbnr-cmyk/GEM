@@ -865,7 +865,7 @@ async def get_team(user: dict = Depends(get_current_user)):
     
     return {
         "levels": levels,
-        "total_team": sum(l["count"] for l in levels)
+        "total_team": sum(lvl["count"] for lvl in levels)
     }
 
 @api_router.get("/user/income")
