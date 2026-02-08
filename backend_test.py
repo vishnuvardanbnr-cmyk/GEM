@@ -402,6 +402,55 @@ class GemBotAPITester:
         )
         return success, response
 
+    def test_check_activation(self):
+        """Test check activation endpoint"""
+        success, response = self.run_test(
+            "Check Activation",
+            "POST",
+            "user/check-activation",
+            200
+        )
+        return success, response
+
+    def test_submit_mt5_credentials(self, mt5_data):
+        """Test MT5 credentials submission"""
+        success, response = self.run_test(
+            "Submit MT5 Credentials",
+            "POST",
+            "user/submit-mt5",
+            200,
+            data=mt5_data
+        )
+        return success, response
+
+    def test_submit_mt5_without_activation(self, mt5_data):
+        """Test MT5 credentials submission for inactive user"""
+        success, response = self.run_test(
+            "Submit MT5 Without Activation",
+            "POST",
+            "user/submit-mt5",
+            400,  # Expecting 400 error for inactive user
+            data=mt5_data
+        )
+        return success, response
+
+    def test_submit_mt5_without_terms(self):
+        """Test MT5 credentials submission without terms acceptance"""
+        mt5_data = {
+            "mt5_server": "Test-Server",
+            "mt5_username": "12345",
+            "mt5_password": "testpass",
+            "terms_accepted": False  # Terms not accepted
+        }
+        success, response = self.run_test(
+            "Submit MT5 Without Terms",
+            "POST",
+            "user/submit-mt5",
+            400,  # Expecting 400 error for terms not accepted
+            data=mt5_data
+        )
+        return success, response
+
 def main():
     print("🚀 Starting GEM BOT MLM Platform API Testing...")
     tester = GemBotAPITester()
