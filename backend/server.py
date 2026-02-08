@@ -332,13 +332,41 @@ async def get_subscription_settings():
     settings = await db.settings.find_one({"type": "subscription"}, {"_id": 0})
     if settings and settings.get("data"):
         return settings["data"]
-    return {"activation_amount": 100.0, "renewal_amount": 70.0}
+    return {"activation_amount": 100.0, "renewal_amount": 70.0, "grace_period_hours": 48}
+
+def get_user_subscription_status(user: dict, grace_period_hours: int = 48) -> str:
+    """
+    Returns user subscription status:
+    - 'active': Subscription is valid
+    - 'grace_period': Subscription expired but within grace period
+    - 'inactive': Subscription expired and grace period ended (compressed)
+    """
+    if not user.get("subscription_expires"):
+        return "inactive"
+    
+    expires = datetime.fromisoformat(user["subscription_expires"])
+    now = datetime.now(timezone.utc)
+    grace_end = expires + timedelta(hours=grace_period_hours)
+    
+    if now <= expires:
+        return "active"
+    elif now <= grace_end:
+        return "grace_period"
+    else:
+        return "inactive"
 
 async def distribute_level_income(user_id: str, amount: float, income_type: str):
     """Distribute income to upline sponsors based on level settings
     income_type: 'activation' or 'renewal'
+    
+    Features:
+    - Compression: Skip inactive users, pass income to next active upline
+    - Grace Period: Users in grace period get income stored in temporary_wallet
     """
     level_settings = await get_level_settings()
+    sub_settings = await get_subscription_settings()
+    grace_period_hours = sub_settings.get("grace_period_hours", 48)
+    
     user = await db.users.find_one({"id": user_id}, {"_id": 0})
     if not user or not user.get("sponsor_id"):
         return
@@ -351,6 +379,14 @@ async def distribute_level_income(user_id: str, amount: float, income_type: str)
         if not sponsor:
             break
         
+        # Get sponsor's subscription status
+        sponsor_status = get_user_subscription_status(sponsor, grace_period_hours)
+        
+        # COMPRESSION: If sponsor is inactive, skip to next upline (don't increment level)
+        if sponsor_status == "inactive":
+            current_sponsor_id = sponsor.get("sponsor_id")
+            continue  # Skip this sponsor, don't increment level
+        
         # Check if sponsor qualifies for this level income
         level_config = next((l for l in level_settings if l["level"] == level), None)
         if not level_config:
@@ -358,7 +394,7 @@ async def distribute_level_income(user_id: str, amount: float, income_type: str)
         
         sponsor_direct_referrals = await db.users.count_documents({"sponsor_id": current_sponsor_id})
         
-        if sponsor_direct_referrals >= level_config["min_direct_referrals"] and sponsor.get("is_active"):
+        if sponsor_direct_referrals >= level_config["min_direct_referrals"]:
             # Use appropriate percentage based on income type
             if income_type == "activation":
                 percentage = level_config.get("activation_percentage", level_config.get("percentage", 0))
@@ -367,27 +403,51 @@ async def distribute_level_income(user_id: str, amount: float, income_type: str)
             
             income = amount * (percentage / 100)
             
-            # Update sponsor's wallet balance and total income
-            await db.users.update_one(
-                {"id": current_sponsor_id},
-                {
-                    "$inc": {"wallet_balance": income, "total_income": income},
-                    "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}
-                }
-            )
+            if sponsor_status == "active":
+                # Active user: Add to main wallet
+                await db.users.update_one(
+                    {"id": current_sponsor_id},
+                    {
+                        "$inc": {"wallet_balance": income, "total_income": income},
+                        "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}
+                    }
+                )
+                
+                # Record income transaction
+                await db.transactions.insert_one({
+                    "id": str(uuid.uuid4()),
+                    "user_id": current_sponsor_id,
+                    "type": "level_income",
+                    "amount": income,
+                    "level": level,
+                    "from_user_id": user_id,
+                    "income_type": income_type,
+                    "status": "completed",
+                    "created_at": datetime.now(timezone.utc).isoformat()
+                })
             
-            # Record income transaction with income_type
-            await db.transactions.insert_one({
-                "id": str(uuid.uuid4()),
-                "user_id": current_sponsor_id,
-                "type": "level_income",
-                "amount": income,
-                "level": level,
-                "from_user_id": user_id,
-                "income_type": income_type,
-                "status": "completed",
-                "created_at": datetime.now(timezone.utc).isoformat()
-            })
+            elif sponsor_status == "grace_period":
+                # Grace period: Store in temporary wallet
+                await db.users.update_one(
+                    {"id": current_sponsor_id},
+                    {
+                        "$inc": {"temporary_wallet": income},
+                        "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}
+                    }
+                )
+                
+                # Record as pending transaction
+                await db.transactions.insert_one({
+                    "id": str(uuid.uuid4()),
+                    "user_id": current_sponsor_id,
+                    "type": "level_income",
+                    "amount": income,
+                    "level": level,
+                    "from_user_id": user_id,
+                    "income_type": income_type,
+                    "status": "pending_grace",  # Pending until renewal or forfeit
+                    "created_at": datetime.now(timezone.utc).isoformat()
+                })
         
         current_sponsor_id = sponsor.get("sponsor_id")
         level += 1
