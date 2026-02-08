@@ -280,6 +280,61 @@ class GemBotAPITester:
         )
         return success, response
 
+    def test_admin_additional_commissions(self):
+        """Test admin additional commissions CRUD"""
+        # Get current commissions
+        success, response = self.run_test(
+            "Get Additional Commissions",
+            "GET",
+            "admin/additional-commissions",
+            200,
+            is_admin=True
+        )
+        return success, response
+
+    def test_add_additional_commission(self, user_id, activation_percentage, renewal_percentage):
+        """Test adding additional commission"""
+        success, response = self.run_test(
+            "Add Additional Commission",
+            "POST",
+            "admin/additional-commissions",
+            200,
+            data={
+                "user_id": user_id,
+                "activation_percentage": activation_percentage,
+                "renewal_percentage": renewal_percentage
+            },
+            is_admin=True
+        )
+        return success, response
+
+    def test_update_additional_commission(self, user_id, activation_percentage, renewal_percentage):
+        """Test updating additional commission"""
+        success, response = self.run_test(
+            "Update Additional Commission",
+            "PUT",
+            f"admin/additional-commissions/{user_id}",
+            200,
+            data={
+                "user_id": user_id,
+                "activation_percentage": activation_percentage,
+                "renewal_percentage": renewal_percentage
+            },
+            is_admin=True
+        )
+        return success, response
+
+    def test_delete_additional_commission(self, user_id):
+        """Test deleting additional commission"""
+        success, response = self.run_test(
+            "Delete Additional Commission",
+            "DELETE",
+            f"admin/additional-commissions/{user_id}",
+            200,
+            is_admin=True
+        )
+        return success, response
+
     def test_public_terms(self):
         """Test public terms endpoint"""
         success, response = self.run_test(
