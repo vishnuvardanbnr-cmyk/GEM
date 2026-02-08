@@ -624,6 +624,7 @@ async def verify_otp(data: OTPVerify):
         "subscription_expires": None,
         "total_income": 0.0,
         "wallet_balance": 0.0,
+        "temporary_wallet": 0.0,  # Grace period income storage
         "direct_referrals": 0,
         "created_at": datetime.now(timezone.utc).isoformat(),
         "updated_at": datetime.now(timezone.utc).isoformat()
