@@ -307,18 +307,18 @@ async def get_level_settings():
     settings = await db.settings.find_one({"type": "levels"}, {"_id": 0})
     if settings and settings.get("data"):
         return settings["data"]
-    # Default 10 levels
+    # Default 10 levels with separate activation/renewal percentages
     return [
-        {"level": 1, "percentage": 10.0, "min_direct_referrals": 0},
-        {"level": 2, "percentage": 5.0, "min_direct_referrals": 2},
-        {"level": 3, "percentage": 3.0, "min_direct_referrals": 3},
-        {"level": 4, "percentage": 2.0, "min_direct_referrals": 4},
-        {"level": 5, "percentage": 1.5, "min_direct_referrals": 5},
-        {"level": 6, "percentage": 1.0, "min_direct_referrals": 6},
-        {"level": 7, "percentage": 0.8, "min_direct_referrals": 7},
-        {"level": 8, "percentage": 0.6, "min_direct_referrals": 8},
-        {"level": 9, "percentage": 0.4, "min_direct_referrals": 9},
-        {"level": 10, "percentage": 0.2, "min_direct_referrals": 10}
+        {"level": 1, "activation_percentage": 10.0, "renewal_percentage": 10.0, "min_direct_referrals": 0},
+        {"level": 2, "activation_percentage": 5.0, "renewal_percentage": 5.0, "min_direct_referrals": 2},
+        {"level": 3, "activation_percentage": 3.0, "renewal_percentage": 3.0, "min_direct_referrals": 3},
+        {"level": 4, "activation_percentage": 2.0, "renewal_percentage": 2.0, "min_direct_referrals": 4},
+        {"level": 5, "activation_percentage": 1.5, "renewal_percentage": 1.5, "min_direct_referrals": 5},
+        {"level": 6, "activation_percentage": 1.0, "renewal_percentage": 1.0, "min_direct_referrals": 6},
+        {"level": 7, "activation_percentage": 0.8, "renewal_percentage": 0.8, "min_direct_referrals": 7},
+        {"level": 8, "activation_percentage": 0.6, "renewal_percentage": 0.6, "min_direct_referrals": 8},
+        {"level": 9, "activation_percentage": 0.4, "renewal_percentage": 0.4, "min_direct_referrals": 9},
+        {"level": 10, "activation_percentage": 0.2, "renewal_percentage": 0.2, "min_direct_referrals": 10}
     ]
 
 async def get_subscription_settings():
