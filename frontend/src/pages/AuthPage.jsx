@@ -128,7 +128,9 @@ export default function AuthPage() {
             <CardDescription>
               {step === "email" 
                 ? "Enter your email to login or register" 
-                : `We sent a 6-digit code to ${email}`}
+                : smtpConfigured 
+                  ? `We sent a 6-digit code to ${email}`
+                  : `Use default OTP: 000000 (SMTP not configured)`}
             </CardDescription>
           </CardHeader>
           <CardContent>
