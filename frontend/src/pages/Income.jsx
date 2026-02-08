@@ -76,13 +76,13 @@ export default function Income() {
         <Card className="card-hover">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
-                <DollarSign className="w-6 h-6 text-blue-600" />
+              <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center">
+                <DollarSign className="w-6 h-6 text-emerald-600" />
               </div>
               <div>
-                <p className="text-neutral-500 text-sm">Subscription Income</p>
+                <p className="text-neutral-500 text-sm">Activation Income</p>
                 <p className="font-heading text-2xl font-bold text-neutral-900 num-display">
-                  ${(data?.income_by_type?.subscription || 0).toFixed(2)}
+                  ${(data?.income_by_type?.activation || 0).toFixed(2)}
                 </p>
               </div>
             </div>
@@ -92,13 +92,13 @@ export default function Income() {
         <Card className="card-hover">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
-                <Users className="w-6 h-6 text-purple-600" />
+              <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
+                <Users className="w-6 h-6 text-blue-600" />
               </div>
               <div>
-                <p className="text-neutral-500 text-sm">Referral Income</p>
+                <p className="text-neutral-500 text-sm">Renewal Income</p>
                 <p className="font-heading text-2xl font-bold text-neutral-900 num-display">
-                  ${(data?.income_by_type?.referral || 0).toFixed(2)}
+                  ${(data?.income_by_type?.renewal || 0).toFixed(2)}
                 </p>
               </div>
             </div>
