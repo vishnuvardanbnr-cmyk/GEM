@@ -895,13 +895,68 @@ async def admin_get_levels(admin: dict = Depends(get_current_admin)):
     return {"levels": await get_level_settings()}
 
 @api_router.put("/admin/settings/levels")
-async def admin_update_levels(levels: List[LevelSettings], admin: dict = Depends(get_current_admin)):
+async def admin_update_levels(levels: List[LevelSettingsV2], admin: dict = Depends(get_current_admin)):
     await db.settings.update_one(
         {"type": "levels"},
         {"$set": {"type": "levels", "data": [l.model_dump() for l in levels]}},
         upsert=True
     )
     return {"message": "Level settings updated", "levels": [l.model_dump() for l in levels]}
+
+# ==================== ADDITIONAL COMMISSIONS ====================
+
+@api_router.get("/admin/additional-commissions")
+async def admin_get_additional_commissions(admin: dict = Depends(get_current_admin)):
+    commissions = await db.additional_commissions.find({}, {"_id": 0}).to_list(1000)
+    # Enrich with user details
+    for comm in commissions:
+        user = await db.users.find_one({"id": comm["user_id"]}, {"_id": 0, "email": 1, "first_name": 1, "last_name": 1})
+        comm["user"] = user
+    return {"commissions": commissions}
+
+@api_router.post("/admin/additional-commissions")
+async def admin_add_additional_commission(data: AdditionalCommission, admin: dict = Depends(get_current_admin)):
+    # Verify user exists
+    user = await db.users.find_one({"id": data.user_id}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Check if commission already exists for this user
+    existing = await db.additional_commissions.find_one({"user_id": data.user_id})
+    if existing:
+        raise HTTPException(status_code=400, detail="Commission already exists for this user. Use update instead.")
+    
+    commission = {
+        "id": str(uuid.uuid4()),
+        "user_id": data.user_id,
+        "activation_percentage": data.activation_percentage,
+        "renewal_percentage": data.renewal_percentage,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.additional_commissions.insert_one(commission)
+    commission.pop("_id", None)
+    return {"message": "Additional commission added", "commission": commission}
+
+@api_router.put("/admin/additional-commissions/{user_id}")
+async def admin_update_additional_commission(user_id: str, data: AdditionalCommission, admin: dict = Depends(get_current_admin)):
+    result = await db.additional_commissions.update_one(
+        {"user_id": user_id},
+        {"$set": {
+            "activation_percentage": data.activation_percentage,
+            "renewal_percentage": data.renewal_percentage,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Commission not found")
+    return {"message": "Additional commission updated"}
+
+@api_router.delete("/admin/additional-commissions/{user_id}")
+async def admin_delete_additional_commission(user_id: str, admin: dict = Depends(get_current_admin)):
+    result = await db.additional_commissions.delete_one({"user_id": user_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Commission not found")
+    return {"message": "Additional commission deleted"}
 
 @api_router.get("/admin/settings/subscription")
 async def admin_get_subscription(admin: dict = Depends(get_current_admin)):
