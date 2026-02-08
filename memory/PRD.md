@@ -96,3 +96,21 @@ Build an MLM project named GEM BOT with:
 ## Admin Credentials
 - Email: admin@gembot.com
 - Password: admin123
+
+## Update: Jan 2026 (Additional Features)
+
+### Changes Made:
+1. **Default OTP System**
+   - When SMTP is not configured, OTP defaults to "000000"
+   - Clear message shown to users: "Use default OTP: 000000 (SMTP not configured)"
+   - Once SMTP is configured in admin panel, random OTPs will be generated and emailed
+
+2. **Separate Activation/Renewal Percentages**
+   - Level income now tracks separately for activation ($100) and renewal ($70) payments
+   - Each level has `activation_percentage` and `renewal_percentage` configurable in admin
+
+3. **Additional User Commissions**
+   - Admin can add extra commission for specific users
+   - Located above Level Settings in admin panel
+   - Separate activation and renewal percentage for each user
+   - These users get commission from ALL activations/renewals in the system
