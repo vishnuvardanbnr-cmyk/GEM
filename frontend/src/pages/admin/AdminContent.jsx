@@ -5,7 +5,8 @@ import {
   Loader2,
   Mail,
   BookOpen,
-  Shield
+  Shield,
+  Zap
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
@@ -22,6 +23,7 @@ export default function AdminContent() {
   
   const [terms, setTerms] = useState("");
   const [privacy, setPrivacy] = useState("");
+  const [activationTerms, setActivationTerms] = useState("");
   const [emailTemplates, setEmailTemplates] = useState([]);
 
   useEffect(() => {
@@ -30,14 +32,16 @@ export default function AdminContent() {
 
   const fetchContent = async () => {
     try {
-      const [termsRes, privacyRes, templatesRes] = await Promise.all([
+      const [termsRes, privacyRes, activationRes, templatesRes] = await Promise.all([
         fetch(`${process.env.REACT_APP_BACKEND_URL}/api/public/terms`).then(r => r.json()),
         fetch(`${process.env.REACT_APP_BACKEND_URL}/api/public/privacy`).then(r => r.json()),
+        fetch(`${process.env.REACT_APP_BACKEND_URL}/api/public/activation-terms`).then(r => r.json()),
         adminAPI.getEmailTemplates()
       ]);
       
       setTerms(termsRes.content || "");
       setPrivacy(privacyRes.content || "");
+      setActivationTerms(activationRes.content || "");
       setEmailTemplates(templatesRes.data.templates || []);
     } catch (error) {
       toast.error("Failed to load content");
@@ -67,6 +71,18 @@ export default function AdminContent() {
       toast.error("Failed to save Privacy Policy");
     } finally {
       setSaving({ ...saving, privacy: false });
+    }
+  };
+
+  const saveActivationTerms = async () => {
+    setSaving({ ...saving, activation: true });
+    try {
+      await adminAPI.updateContent("activation_terms", activationTerms);
+      toast.success("Activation Terms saved");
+    } catch (error) {
+      toast.error("Failed to save Activation Terms");
+    } finally {
+      setSaving({ ...saving, activation: false });
     }
   };
 
@@ -122,22 +138,59 @@ export default function AdminContent() {
 
         {/* Pages */}
         <TabsContent value="pages" className="space-y-6">
+          {/* Activation Terms - Most Important */}
+          <Card className="border-emerald-200" data-testid="activation-terms-card">
+            <CardHeader>
+              <CardTitle className="font-heading text-lg flex items-center gap-2">
+                <Zap className="w-5 h-5 text-emerald-600" />
+                Activation Terms & Conditions
+              </CardTitle>
+              <CardDescription>
+                Shown to users when they click "Activate Now". HTML supported.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Textarea
+                value={activationTerms}
+                onChange={(e) => setActivationTerms(e.target.value)}
+                className="min-h-[250px] font-mono text-sm"
+                placeholder="Enter Activation Terms & Conditions (HTML supported)"
+                data-testid="activation-terms-textarea"
+              />
+              <Button 
+                onClick={saveActivationTerms}
+                className="bg-emerald-600 hover:bg-emerald-700"
+                disabled={saving.activation}
+                data-testid="save-activation-terms-btn"
+              >
+                {saving.activation ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    Save Activation Terms
+                  </>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+
           {/* Terms & Conditions */}
           <Card data-testid="terms-card">
             <CardHeader>
               <CardTitle className="font-heading text-lg flex items-center gap-2">
                 <BookOpen className="w-5 h-5 text-blue-600" />
-                Terms & Conditions
+                Terms & Conditions (General)
               </CardTitle>
               <CardDescription>
-                HTML content is supported
+                General terms page. HTML content is supported.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <Textarea
                 value={terms}
                 onChange={(e) => setTerms(e.target.value)}
-                className="min-h-[300px] font-mono text-sm"
+                className="min-h-[200px] font-mono text-sm"
                 placeholder="Enter Terms & Conditions content (HTML supported)"
                 data-testid="terms-textarea"
               />
@@ -174,7 +227,7 @@ export default function AdminContent() {
               <Textarea
                 value={privacy}
                 onChange={(e) => setPrivacy(e.target.value)}
-                className="min-h-[300px] font-mono text-sm"
+                className="min-h-[200px] font-mono text-sm"
                 placeholder="Enter Privacy Policy content (HTML supported)"
                 data-testid="privacy-textarea"
               />
