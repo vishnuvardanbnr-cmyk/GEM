@@ -801,17 +801,30 @@ async def get_dashboard(user: dict = Depends(get_current_user)):
         wallet_balance = await get_wallet_balance(user["wallet_address"])
     
     sub_settings = await get_subscription_settings()
+    grace_period_hours = sub_settings.get("grace_period_hours", 48)
+    
+    # Calculate subscription status
+    subscription_status = get_user_subscription_status(user, grace_period_hours)
+    
+    # Calculate grace period end time if in grace period
+    grace_period_ends = None
+    if subscription_status == "grace_period" and user.get("subscription_expires"):
+        expires = datetime.fromisoformat(user["subscription_expires"])
+        grace_period_ends = (expires + timedelta(hours=grace_period_hours)).isoformat()
     
     return {
         "user": user,
         "wallet_balance": wallet_balance,
         "internal_balance": user.get("wallet_balance", 0),
+        "temporary_wallet": user.get("temporary_wallet", 0),
         "total_income": user.get("total_income", 0),
         "direct_referrals": direct_count,
         "total_team": total_team,
         "recent_transactions": recent_txns,
         "level_income": {str(li["_id"]): li["total"] for li in level_income},
-        "subscription_settings": sub_settings
+        "subscription_settings": sub_settings,
+        "subscription_status": subscription_status,
+        "grace_period_ends": grace_period_ends
     }
 
 async def get_total_team_count(user_id: str, visited: set = None) -> int:
