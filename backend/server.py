@@ -1078,10 +1078,10 @@ async def admin_get_levels(admin: dict = Depends(get_current_admin)):
 async def admin_update_levels(levels: List[LevelSettingsV2], admin: dict = Depends(get_current_admin)):
     await db.settings.update_one(
         {"type": "levels"},
-        {"$set": {"type": "levels", "data": [l.model_dump() for l in levels]}},
+        {"$set": {"type": "levels", "data": [lvl.model_dump() for lvl in levels]}},
         upsert=True
     )
-    return {"message": "Level settings updated", "levels": [l.model_dump() for l in levels]}
+    return {"message": "Level settings updated", "levels": [lvl.model_dump() for lvl in levels]}
 
 # ==================== ADDITIONAL COMMISSIONS ====================
 
